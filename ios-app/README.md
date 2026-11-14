@@ -24,4 +24,9 @@ Replace `www/index.html` (or pull the latest repository), then run `npx cap sync
 - **Strava** (native app and web app): tap **Share GPX file**, save it to Files or AirDrop it to your Mac, then upload it at strava.com/upload with sport Snowboard. Strava's API now needs a paid Strava subscription; subscribers can instead create an app at strava.com/settings/api (website and Authorization Callback Domain `boreder13.github.io`), paste its Client ID and Secret under "Strava subscriber? Set up one-tap upload", then Connect and "Upload this day".
 - **Whoop** (native app): create an app at developer-dashboard.whoop.com with redirect URL `https://boreder13.github.io/ski-planner/callback.html` and scopes `read:workout`, `read:cycles`, `offline`; paste its Client ID and Secret, then Connect. Shows day strain and heart rate plus each workout's strain and heart rate.
 
+## Share location (Ride tab)
+
+- **Send where I am now:** a one-time message with Apple Maps and Google Maps links.
+- **Live sharing:** sends a link to `live.html`, a live map friends open in any browser, with buttons to open your spot in Apple Maps or Google Maps. Positions go through the free ntfy.sh relay on a random, unguessable channel, about every 2 minutes, and expire after 12 hours.
+
 Keys and tokens are stored only on your phone, never in this repository.

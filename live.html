@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Live location · Ski Planner</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+html,body{margin:0;height:100%;font:15px/1.4 -apple-system,system-ui,sans-serif;color:#0f172a}
+#map{position:absolute;inset:0}
+#card{position:absolute;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1000;background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.25);padding:12px 14px;max-width:520px;margin:0 auto}
+#card h1{font-size:17px;margin:0 0 2px}
+#card .sub{color:#475569;font-size:13.5px}
+#card .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+#card a{flex:1;text-align:center;text-decoration:none;font-weight:600;font-size:14px;padding:10px 8px;border-radius:10px;background:#eef2ff;color:#1e40af;white-space:nowrap}
+#card a.pri{background:#2563eb;color:#fff}
+.dot{width:20px;height:20px;border-radius:50%;background:#7c3aed;border:3px solid #fff;box-shadow:0 0 0 2px #7c3aed,0 2px 8px rgba(0,0,0,.4)}
+.dot.old{background:#94a3b8;box-shadow:0 0 0 2px #94a3b8}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;margin-right:6px;vertical-align:1px;animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.3}}
+</style></head>
+<body>
+<div id="map"></div>
+<div id="card"><h1 id="ttl">Loading location…</h1><div class="sub" id="info"></div><div class="row" id="btns"></div></div>
+<script>
+const topic=(location.hash||"").slice(1).replace(/[^A-Za-z0-9_-]/g,"");
+const map=L.map("map",{zoomControl:true}).setView([45.96,7.70],12);
+const osm=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"});
+const topo=L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap, SRTM · © OpenTopoMap"});
+const pistes=L.tileLayer("https://tiles.opensnowmap.org/pistes/{z}/{x}/{y}.png",{maxZoom:18,attribution:"Pistes © OpenSnowMap"});
+topo.addTo(map);pistes.addTo(map);
+L.control.layers({"Terrain":topo,"Street":osm},{"Ski pistes":pistes},{position:"topright"}).addTo(map);
+let marker=null,trail=null,fitted=false;
+const $=id=>document.getElementById(id);
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?"just now":m<60?m+" min ago":Math.floor(m/60)+" h "+(m%60)+" min ago";};
+const hhmm=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+async function load(){
+  if(!topic){$("ttl").textContent="This link is incomplete";$("info").textContent="Ask your friend to share the live link again.";return;}
+  let pts=[];
+  try{const r=await fetch(`https://ntfy.sh/${topic}/json?poll=1&since=12h`,{cache:"no-store"});const txt=await r.text();
+    txt.split("\n").forEach(l=>{if(!l.trim())return;try{const e=JSON.parse(l);if(e.event==="message"){const m=JSON.parse(e.message);if(isFinite(m.lat)&&isFinite(m.lon))pts.push(m);}}catch(x){}});}
+  catch(e){$("info").textContent="Can't reach the live feed right now. Retrying…";return;}
+  if(!pts.length){$("ttl").textContent="Waiting for the first position…";$("info").textContent="This updates on its own. Your friend may not have GPS signal yet.";return;}
+  pts.sort((a,b)=>a.t-b.t);const p=pts[pts.length-1],ll=[p.lat,p.lon];
+  const ended=p.ended||(p.until&&p.until<Date.now()), stale=Date.now()-p.t>15*60000;
+  const icon=L.divIcon({className:"",html:`<div class="dot${ended||stale?" old":""}"></div>`,iconSize:[20,20],iconAnchor:[10,10]});
+  if(!marker)marker=L.marker(ll,{icon}).addTo(map);else marker.setLatLng(ll).setIcon(icon);
+  const line=pts.filter(q=>Date.now()-q.t<6*3600e3).map(q=>[q.lat,q.lon]);
+  if(!trail)trail=L.polyline(line,{color:"#7c3aed",weight:4,opacity:.55}).addTo(map);else trail.setLatLngs(line);
+  if(!fitted){map.setView(ll,14);fitted=true;}
+  const name=p.name||"Your friend";
+  $("ttl").innerHTML=(ended?"":`<span class="live"></span>`)+esc(name)+(p.near?" · "+esc(p.near):"");
+  $("info").innerHTML=[ended?"Sharing ended":"Updated "+ago(p.t),p.alt?p.alt.toLocaleString()+" m":"",p.spd!=null&&p.spd>3?Math.round(p.spd)+" km/h":"",!ended&&p.until?"live until "+hhmm(p.until):""].filter(Boolean).join(" · ")+(stale&&!ended?"<br>No update for a while: they may be on a lift or without signal.":"");
+  const q=encodeURIComponent(name);
+  $("btns").innerHTML=`<a class="pri" href="https://maps.apple.com/?ll=${p.lat},${p.lon}&q=${q}">Apple Maps</a><a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}">Google Maps</a>`+(/iPhone|iPad|iPod/.test(navigator.userAgent)?"":`<a href="geo:${p.lat},${p.lon}?q=${p.lat},${p.lon}(${q})">Other app</a>`);
+}
+load();setInterval(load,30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)load();});
+</script>
+</body></html>

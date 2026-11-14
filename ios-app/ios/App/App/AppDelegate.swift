@@ -63,7 +63,8 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "requestAuthorization", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "saveWorkout", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "heartRate", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "shareFile", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "shareFile", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shareText", returnType: CAPPluginReturnPromise)
     ]
     private let store = HKHealthStore()
     private var distanceType: HKQuantityType { HKQuantityType.quantityType(forIdentifier: .distanceDownhillSnowSports)! }
@@ -157,6 +158,20 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         DispatchQueue.main.async {
             guard let vc = self.bridge?.viewController else { call.reject("No view to present from"); return }
             let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            sheet.popoverPresentationController?.sourceView = vc.view
+            sheet.completionWithItemsHandler = { _, completed, _, error in
+                if let error = error { call.reject(error.localizedDescription) } else { call.resolve(["completed": completed]) }
+            }
+            vc.present(sheet, animated: true)
+        }
+    }
+
+    // Opens the iOS share sheet for a text message (location links).
+    @objc func shareText(_ call: CAPPluginCall) {
+        guard let text = call.getString("text") else { call.reject("text is required"); return }
+        DispatchQueue.main.async {
+            guard let vc = self.bridge?.viewController else { call.reject("No view to present from"); return }
+            let sheet = UIActivityViewController(activityItems: [text], applicationActivities: nil)
             sheet.popoverPresentationController?.sourceView = vc.view
             sheet.completionWithItemsHandler = { _, completed, _, error in
                 if let error = error { call.reject(error.localizedDescription) } else { call.resolve(["completed": completed]) }

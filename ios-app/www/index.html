@@ -914,6 +914,7 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
 <div id="pRide" hidden><div id="rideBox"></div>
   <div class="card"><div class="chips" id="chips"></div><div class="sub" id="whereLine" style="margin-top:8px"></div></div>
   <div class="card" id="routeCard" hidden></div>
+  <div class="card" id="shareBox"></div>
 </div>
 <div id="pPlan" hidden><div id="planBox"></div></div>
 <div id="pGuide" hidden></div>
@@ -3427,6 +3428,85 @@ const Alerts=(function(){
 })();
 window.__alerts=Alerts;
 
+// ---------- share location with friends (one-time link or live link) ----------
+const Share=(function(){
+  const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+  const Native=NATIVE?Capacitor.registerPlugin("Health"):null;
+  const VIEW="https://boreder13.github.io/ski-planner/live.html", RELAY="https://ntfy.sh/";
+  const K="msp-share"; let L={}; try{L=JSON.parse(localStorage.getItem(K)||"{}");}catch(e){}
+  const saveL=()=>{try{localStorage.setItem(K,JSON.stringify(L));}catch(e){}};
+  const hhmm=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  const live=()=>!!(L.topic&&L.until>Date.now());
+  const who=()=>(L.name||"").trim()||"Your friend";
+
+  function near(lat,lon){let best=null,bd=1e9;
+    for(const l of labelData){if(!/^(village|stn|hamlet|peak|lift|food|glacier|lake|pass)$/.test(l.c))continue;const d=hav([lat,lon],l.ll);if(d<bd){bd=d;best=l;}}
+    if(!best||bd>2500)return "";const n=String(best.t).replace(/^[▲◇]\s*/,"").replace(/\s\d{4}$/,"");return (bd<150?"at ":"near ")+n;}
+  function links(lat,lon){const q=encodeURIComponent(who());
+    return {apple:`https://maps.apple.com/?ll=${lat},${lon}&q=${q}`,google:`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`};}
+  async function share(text,url){
+    if(NATIVE){try{await Native.shareText({text:url?text+"\n"+url:text});return;}catch(e){}}
+    if(navigator.share){try{await navigator.share(url?{text,url}:{text});return;}catch(e){if(e.name==="AbortError")return;}}
+    try{await navigator.clipboard.writeText(url?text+"\n"+url:text);toast("📋 Copied: paste it into a message");}catch(e){prompt("Copy and send this:",url?text+"\n"+url:text);}}
+  function here(){return new Promise((res,rej)=>{
+    if(L.last&&Date.now()-L.last.t<120000)return res(L.last);
+    if(!navigator.geolocation){return S.lastPos?res({lat:S.lastPos[1],lon:S.lastPos[0],t:Date.now()}):rej(new Error("Location isn't available"));}
+    navigator.geolocation.getCurrentPosition(p=>res(fromPos(p)),e=>{if(S.lastPos)res({lat:S.lastPos[1],lon:S.lastPos[0],t:Date.now()});else rej(new Error(e.code===1?"Location is off for Ski Planner":"Couldn't get your location"));},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});});}
+  function fromPos(p){const c=p.coords;const lat=+c.latitude.toFixed(6),lon=+c.longitude.toFixed(6);
+    let alt=c.altitude;try{const e=window.ELEV&&ELEV(lat,lon);if(e)alt=e;}catch(e){}
+    return {lat,lon,alt:alt!=null?Math.round(alt):null,acc:c.accuracy?Math.round(c.accuracy):null,spd:c.speed!=null&&c.speed>=0?+(c.speed*3.6).toFixed(1):null,t:p.timestamp||Date.now()};}
+
+  async function sendOnce(){const p=await here();const l=links(p.lat,p.lon),w=near(p.lat,p.lon);
+    const text=`📍 ${who()} is ${w||"here"}${p.alt?` (${p.alt.toLocaleString()} m)`:""} · ${hhmm(p.t)}\nApple Maps: ${l.apple}\nGoogle Maps: ${l.google}`;
+    await share(text);}
+
+  async function post(p,extra){if(!L.topic)return;const body=Object.assign({name:who(),near:near(p.lat,p.lon),until:L.until},p,extra||{});
+    L.sentAt=Date.now();L.lastSent=p;
+    try{const r=await fetch(RELAY+L.topic,{method:"POST",body:JSON.stringify(body)});if(!r.ok)throw new Error("HTTP "+r.status);L.sentAt=Date.now();L.err="";saveL();}
+    catch(e){L.err="Couldn't send (no signal?). Retrying.";saveL();}
+    render();}
+  function rand(){const a=new Uint8Array(12);crypto.getRandomValues(a);return "skp-"+Array.from(a,b=>(b%36).toString(36)).join("");}
+  async function startLive(hours){
+    const end=hours==="day"?(()=>{const d=new Date();d.setHours(23,59,0,0);return d.getTime();})():Date.now()+hours*3600e3;
+    if(!live())L.topic=rand();L.until=end;L.sentAt=0;saveL();
+    if(window.GPS&&!GPS.on())GPS.start();
+    try{const p=await here();L.last=p;saveL();await post(p);}catch(e){toast(e.message);}
+    await shareLink();render();}
+  async function shareLink(){if(!live())return;
+    await share(`📍 Follow ${who()==="Your friend"?"me":who()} live on the map until ${hhmm(L.until)}. The page has buttons to open my spot in Apple Maps or Google Maps:`,`${VIEW}#${L.topic}`);}
+  async function stopLive(){if(L.topic&&L.last)await post(L.last,{ended:true,until:Date.now()});L.topic=null;L.until=0;saveL();render();toast("Live sharing stopped");}
+  function onPos(p){const q=fromPos(p);L.last=q;
+    if(!L.topic)return;
+    if(L.until<=Date.now()){post(q,{ended:true});L.topic=null;saveL();return;}
+    const since=Date.now()-(L.sentAt||0), prev=L.lastSent;
+    const moved=prev?hav([prev.lat,prev.lon],[q.lat,q.lon]):1e9;
+    if(since>=110000||(moved>150&&since>=30000)){L.lastSent=q;post(q);}}
+  setInterval(()=>{if(L.topic&&L.until<=Date.now()&&L.last){post(L.last,{ended:true});L.topic=null;saveL();}
+    if(live()&&L.last&&Date.now()-(L.sentAt||0)>300000)post(L.last);
+    const pg=$("pRide");if(pg&&!pg.hidden)render();},30000);
+
+  function render(){const el=$("shareBox");if(!el)return;const on=live();
+    let h=`<h3>📍 Share my location</h3>
+      <div class="row" style="margin-top:2px"><input class="fld" id="shName" placeholder="Your name (shown to friends)" value="${esc(L.name||"")}" style="flex:1;min-width:0"></div>
+      <div class="row" style="margin-top:8px"><button class="btn" data-s="once">📤 Send where I am now</button></div>
+      <div class="sub" style="margin-top:4px">A one-time link friends can open in Apple Maps, Google Maps or any map app.</div>`;
+    if(!on)h+=`<div class="row" style="margin-top:10px"><select class="fld" id="shDur" style="flex:0 0 auto"><option value="2">for 2 hours</option><option value="4">for 4 hours</option><option value="day" selected>until end of day</option></select>
+        <button class="btn pri" data-s="start">🟢 Start live sharing</button></div>
+      <div class="sub" style="margin-top:4px">Sends a link to a live map that updates every couple of minutes while you ride. It runs through ntfy.sh, a free relay: only people with the link can see it, and old positions are deleted after 12 hours.</div>`;
+    else h+=`<div class="sub" style="margin-top:10px;color:var(--ink)"><b>🟢 Live until ${hhmm(L.until)}</b>${L.sentAt?` · last sent ${Math.max(0,Math.round((Date.now()-L.sentAt)/60000))} min ago`:" · waiting for GPS"}${L.err?`<br>⚠️ ${esc(L.err)}`:""}</div>
+      <div class="row" style="margin-top:6px"><button class="btn pri" data-s="link">📤 Share live link</button><button class="btn" data-s="stop">Stop</button></div>`;
+    el.innerHTML=h;}
+  document.addEventListener("click",async ev=>{const b=ev.target.closest("#shareBox [data-s]");if(!b||b.disabled)return;const x=b.dataset.s,lbl=b.textContent;b.disabled=true;
+    try{if(x==="once"){b.textContent="Finding you…";await sendOnce();}else if(x==="start")await startLive($("shDur").value==="day"?"day":+$("shDur").value);
+      else if(x==="link")await shareLink();else if(x==="stop")await stopLive();}
+    catch(e){toast(e.message||String(e));}
+    finally{b.disabled=false;b.textContent=lbl;}});
+  document.addEventListener("change",ev=>{if(ev.target.id==="shName"){L.name=ev.target.value.trim();saveL();}});
+  render();
+  return {onPos,render,_state:()=>L};
+})();
+window.__share=Share;
+
 window.__integrations=Integrations;window.__home=Home;window.Stats=Stats;Stats.render();Home.render();
 // ---------- iPhone web app: live GPS ----------
 (function(){
@@ -3442,7 +3522,7 @@ window.__integrations=Integrations;window.__home=Home;window.Stats=Stats;Stats.r
       dot=L.circleMarker(ll,{radius:6,color:"#fff",weight:2.5,fillColor:"#2563eb",fillOpacity:1,interactive:false}).addTo(map);}
     accCircle.setLatLng(ll).setRadius(acc); dot.setLatLng(ll);
     if(follow) map.panTo(ll,{animate:true});
-    const lonlat=[ll[1],ll[0]]; S.lastPos=lonlat; G.setMe(lonlat);
+    const lonlat=[ll[1],ll[0]]; S.lastPos=lonlat; G.setMe(lonlat); if(window.__share)__share.onPos(p);
     const pill=$("awayPill");
     if(!bounds.pad(0.15).contains(ll)){
       const kmAway=hav(ll,[45.9763,7.6586])/1000, txt=kmAway<10?kmAway.toFixed(1):Math.round(kmAway).toLocaleString();
