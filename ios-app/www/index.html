@@ -685,7 +685,55 @@ svg.leaflet-image-layer.leaflet-interactive path {
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:820px;margin:0 auto}
-header{padding:8px 12px 4px}
+header{position:sticky;top:0;z-index:50;background:var(--bg);padding:calc(8px + env(safe-area-inset-top)) 12px 8px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+header h1{font-size:17px;flex:1;text-align:center;margin:0 44px 0 0}
+header .back{background:none;border:0;color:#93c5fd;font-size:16px;padding:0;min-width:56px;text-align:left}
+header .back[hidden]+h1{margin-left:44px}
+body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:1100;display:flex;background:rgba(11,18,32,.97);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+.appnav button{flex:1;background:none;border:0;color:var(--mute);font-size:11px;font-weight:600;padding:4px 0;position:relative;display:flex;flex-direction:column;align-items:center;gap:1px}
+.appnav button span{font-size:21px;line-height:26px;filter:grayscale(.7);opacity:.75}
+.appnav button.on{color:#e8eef7}.appnav button.on span{filter:none;opacity:1}
+#doneStops{position:absolute;z-index:1004;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));background:#22c55e;color:#04210f;border:0;border-radius:99px;padding:10px 18px;font-weight:700;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.fld.title{width:100%;font-size:18px;font-weight:700;padding:8px 10px}
+.planstops{list-style:none;margin:0;padding:0}
+.planstops li{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);background:var(--panel);transition:transform .12s}
+.planstops li.dragging{transition:none;z-index:5;position:relative;box-shadow:0 6px 18px rgba(0,0,0,.45);border-radius:8px}
+.planstops .grip{font-size:20px;color:var(--mute);padding:4px 6px;touch-action:none;cursor:grab;user-select:none}
+.planstops .num{flex:0 0 24px;height:24px;border-radius:50%;background:var(--route);color:#0b1220;font-weight:800;text-align:center;line-height:24px;font-size:12px}
+.planstops input{background:transparent;border:0;border-bottom:1px dashed #3a4c6c;color:var(--ink);font:inherit;min-width:0}
+.planstops input.nm{flex:1}.planstops input.tm{flex:0 0 74px;text-align:center;font-size:13px}
+.addstop{margin-top:10px;position:relative}.addstop .fld{width:100%}
+#placeRes div{padding:9px 10px;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer;background:var(--panel2)}
+#placeRes div:first-child{border-radius:8px 8px 0 0}#placeRes div:last-child{border-radius:0 0 8px 8px;border-bottom:0}
+.legrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.lnum{flex:0 0 22px;height:22px;border-radius:6px;background:var(--panel2);text-align:center;line-height:22px;font-size:12px;font-weight:700}
+.banner{display:flex;gap:12px;align-items:center;background:#1e3a8a;border-color:#3b82f6}
+.banner.intermediate{background:#7f1d1d;border-color:#ef4444}.banner.advanced{background:#111827;border-color:#6b7280}.banner.easy{background:#1e3a8a;border-color:#60a5fa}
+.banner.warn{background:#78350f;border-color:#f59e0b}.banner.done{background:#14532d;border-color:#22c55e}
+.bic{font-size:34px;flex:0 0 auto}.big{font-size:20px;font-weight:800;line-height:1.2}
+.banner .sub{color:#e2e8f0;opacity:.85}.then{margin-top:4px;font-size:13px;color:#cbd5e1}
+.nstop{font-size:19px;font-weight:800;margin:2px 0 4px}
+.lateS b{color:var(--warn)}.latebox{background:#422006;border:1px solid #b45309;color:#fde68a;border-radius:10px;padding:8px 10px;font-size:13px;margin-top:4px}
+.recbadge{color:#ef4444;font-weight:800}
+#runSheet{position:fixed;inset:0;z-index:1200;background:rgba(2,6,23,.6);display:flex;align-items:flex-end}
+#runSheet[hidden]{display:none}
+.rs{width:100%;max-height:88vh;overflow:auto;background:var(--panel);border-radius:18px 18px 0 0;padding:14px 14px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.rshead{display:flex;justify-content:space-between;align-items:center;font-size:16px}.rshead button{background:none;border:0;color:var(--mute);font-size:20px}
+.rs h4{margin:10px 0 4px;font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+.trk{width:100%;height:auto;margin:8px 0;border-radius:10px}.chart{width:100%;height:auto;background:var(--panel2);border-radius:10px}
+.chart .ct{fill:#91a1b9;font-size:10px}
+li[data-t0]{cursor:pointer}
+#onboard{position:fixed;inset:0;z-index:1300;background:radial-gradient(ellipse at 50% 30%,#1b2d52,#0b1220 70%);display:flex;align-items:center;justify-content:center;padding:24px}
+#onboard[hidden]{display:none}
+.ob{max-width:360px;text-align:center}.obic{font-size:72px}.ob h2{margin:10px 0 6px;font-size:24px}.ob p{color:#cbd5e1;font-size:16px;line-height:1.5}
+.ob .dots{margin:18px 0}.ob .dots i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#334155;margin:0 4px}.ob .dots i.on{background:#e8eef7}
+.obgo{width:100%;padding:13px;font-size:16px;font-weight:700}.obskip{background:none;border:0;color:var(--mute);margin-top:12px;font-size:14px}
+#recDot{position:absolute;top:4px;right:calc(50% - 18px);width:9px;height:9px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--bg);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+#mapShell.fs{bottom:calc(62px + env(safe-area-inset-bottom))!important}
+#closeFs,#expand{display:none!important}
+
 .ptabs{display:flex;gap:6px;padding:0 6px 6px}
 .tripcard{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
 .tripcard:first-of-type{border-top:0}
@@ -824,11 +872,20 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
 </head>
 <body>
 <div class="wrap">
-<header>
-  <h1>Matterhorn Ski Paradise Trail Planner</h1>
-</header>
-<nav class="ptabs" id="ptabs"><button data-p="pHome" class="on">🏠 Home</button><button data-p="pMap">🗺️ Map</button><button data-p="pGuide">📋 Steps</button><button data-p="pStats">📊 Stats</button></nav>
+<header><button id="backBtn" class="back" hidden>‹ Back</button><h1 id="pageTitle">Ski Planner</h1></header>
+<nav class="appnav" id="ptabs">
+  <button data-p="pHome" class="on"><span>🏠</span>Home</button>
+  <button data-p="pMap"><span>🗺️</span>Map</button>
+  <button data-p="pRide"><span>🏂</span>Ride<i id="recDot" hidden></i></button>
+  <button data-p="pStats"><span>📊</span>Stats</button>
+  <button data-p="pMore"><span>⚙️</span>More</button>
+</nav>
 <div id="pHome"></div>
+<div id="pRide" hidden><div id="rideBox"></div>
+  <div class="card"><div class="chips" id="chips"></div><div class="sub" id="whereLine" style="margin-top:8px"></div></div>
+  <div class="card" id="routeCard" hidden></div>
+</div>
+<div id="pPlan" hidden><div id="planBox"></div></div>
 <div id="pGuide" hidden></div>
 <div id="pStats" hidden></div>
 <div id="pMap" hidden>
@@ -855,47 +912,27 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
     <button class="x" id="closeFs" aria-label="Close full screen">✕</button>
   </div>
   <div class="fstools"><input id="search" placeholder="Find a piste, lift or hut…" autocomplete="off"></div>
+  <button id="doneStops" hidden>✓ Done adding stops</button>
   <div id="toast"></div>
   <div id="results"></div>
   <div id="legendPanel"></div>
   <div id="sheet"></div>
 </div>
-<div class="legend">
-  <span><i style="border-color:#3b82f6"></i>Blue</span>
-  <span><i style="border-color:#ef4444"></i>Red</span>
-  <span><i style="border-color:#0a0a0a;box-shadow:0 0 0 1px #888"></i>Black</span>
-  <span><i style="border-color:#f59e0b;border-top-style:dotted"></i>Freeride</span>
-  <span><i style="border-color:#e5e7eb;border-top-style:dashed"></i>Lifts</span>
-  <span><i style="border-color:#7c3aed;border-top-width:8px;opacity:.45"></i>Planned trip</span>
-  <span>🏂 Start / you</span>
-  <span><i style="border-color:#c026d3"></i>Route</span>
-  <span>Full key: tap 🗺️ Key on the map</span>
-</div>
+</div><!-- /pMap -->
+<div id="holders" hidden><select id="tripSel" aria-label="Trip"></select><button id="newTrip">New</button><ul id="stops"></ul>
+  <button id="renameTrip"></button><button id="dupTrip"></button><button id="delTrip"></button></div>
+<div id="keyTimesCard" hidden>
 
-<div class="card">
-  <div class="row" style="justify-content:space-between;margin-bottom:8px">
-    <select id="tripSel" aria-label="Trip"></select>
-    <div class="row"><button class="btn" id="newTrip">＋ New trip</button></div>
-  </div>
-  <div class="chips" id="chips"></div>
-  <div class="sub" id="whereLine" style="margin-top:8px"></div>
-</div>
-
-
-<div class="card" id="routeCard"></div>
-
-<div class="card">
-  <div class="row" style="justify-content:space-between"><h3 style="margin:0">Trip stops</h3>
-    <div class="row"><button class="mini" id="renameTrip">Rename</button><button class="mini" id="dupTrip">Duplicate</button><button class="mini" id="delTrip">Delete</button></div></div>
-  <div class="sub" style="margin:4px 0 6px">The route between stops is worked out from the live map, using lifts up and pistes down and skipping anything marked closed. To add a stop, open the map and use ➕ Stop.</div>
-  <ul class="stoplist" id="stops"></ul>
-  <h3 style="margin:12px 0 4px">Key times</h3>
+<div class="card" id="ktCard">
+  <h3 style="margin:0 0 4px">⏱ Key times</h3>
   <div class="sub" style="margin-bottom:4px">These countdowns show at the top. Edit them for your date, since last-lift times change through the season.</div>
   <ul class="stoplist" id="cutoffs"></ul>
   <div class="row" style="margin-top:6px"><button class="mini" id="addCut">＋ Add time</button></div>
   <label class="switch" id="alertRow" hidden><input type="checkbox" id="alertChk"> 🔔 Remind me 30 and 10 min before each key time (today)</label>
 </div>
 
+</div>
+<div id="pMore" hidden>
 <div class="card">
   <h3>Lift &amp; trail status</h3>
   <div class="sub">Check the official live pages each morning, then mark anything closed (tap it on the map → Mark closed). Routes avoid closed lifts and trails. Marks clear automatically the next day.</div>
@@ -954,8 +991,12 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
     <li>Make a new trip for any day. Trips, marks and settings stay saved on this phone.</li>
   </ul>
 </div>
-</div>
-<footer>
+<div class="card"><h3>About</h3><div class="sub">Trail data © OpenStreetMap contributors (ODbL), terrain from AWS Terrain Tiles. Data may be incomplete or out of date: follow on-mountain signage and the resorts' official maps. Your trips, stats and keys stay on this phone.</div>
+  <div class="row" style="margin-top:8px"><button class="mini" id="replayIntro">Show the intro again</button></div></div>
+</div><!-- /pMore -->
+<div id="onboard" hidden></div>
+<div id="runSheet" hidden></div>
+<footer hidden>
   Map data © OpenStreetMap contributors (ODbL). It may be incomplete or out of date. Follow on-mountain signage and the resorts' official maps. This page doesn't know live lift status, so check the official pages.
 </footer>
 </div>
@@ -2277,8 +2318,8 @@ function drawRoute(){
 
 // ---------- interactions ----------
 const shell=$("mapShell");
-function openFs(){const c=map.getCenter(),z=map.getZoom();shell.classList.add("fs");document.body.style.overflow="hidden";setTimeout(()=>{map.invalidateSize();map.setView(c,z,{animate:false});},60);renderSheet();}
-function closeFs(){shell.classList.remove("fs");document.body.style.overflow="";$("results").style.display="none";setTimeout(()=>map.invalidateSize(),60);}
+function openFs(){if(curPage!=="pMap")showPage("pMap");renderSheet();}
+function closeFs(){$("results").style.display="none";}
 $("expand").onclick=openFs; $("closeFs").onclick=closeFs;
 document.querySelectorAll(".fsbar .mode").forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;save();renderModes();renderSheet();});
 function renderModes(){document.querySelectorAll(".fsbar .mode").forEach(b=>b.classList.toggle("on",b.dataset.m===S.mode));}
@@ -2434,11 +2475,19 @@ $("homeBtn").onclick=()=>{const st=T().stops;if(!st.length)return;if(S.here==nul
 
 function fitRoute(){if(!curRoute)return;const h=Math.min(innerHeight*0.30,250);map.fitBounds(L.latLngBounds(curRoute.path.map(v=>C[v])),{paddingTopLeft:[20,56],paddingBottomRight:[56,h]});}
 // ---------- page tabs ----------
-function showPage(id){document.querySelectorAll("#ptabs button").forEach(b=>b.classList.toggle("on",b.dataset.p===id));
-  ["pHome","pMap","pGuide","pStats"].forEach(p=>$(p).hidden=p!==id);
-  if(id==="pMap"){setTimeout(()=>{map.invalidateSize();if(!userMoved)fitView();if(window.__globeIntro)__globeIntro();},50);}
-  else if(id==="pGuide")renderGuide();else if(id==="pStats"){if(window.Stats)Stats.render();}else if(id==="pHome"&&window.__home)__home.render();
+const PAGES={pHome:["Ski Planner",null,"pHome"],pMap:["Map",null,"pMap"],pRide:["Ride",null,"pRide"],pStats:["Stats",null,"pStats"],pMore:["More",null,"pMore"],pPlan:["Plan route","pHome","pHome"],pGuide:["Steps","back","pHome"]};
+let curPage="pHome",prevPage="pHome";
+function showPage(id){if(!PAGES[id])id="pHome";if(id!==curPage){prevPage=curPage;curPage=id;}
+  const P=PAGES[id];document.querySelectorAll("#ptabs button").forEach(b=>b.classList.toggle("on",b.dataset.p===P[2]));
+  Object.keys(PAGES).forEach(p=>$(p).hidden=p!==id);
+  $("pageTitle").textContent=P[0];$("backBtn").hidden=!P[1];
+  const inMap=id==="pMap";shell.classList.toggle("fs",inMap);document.body.style.overflow=inMap?"hidden":"";document.querySelector("header").style.display=inMap?"none":"";
+  if(inMap){setTimeout(()=>{map.invalidateSize();if(!userMoved)fitView();if(window.__globeIntro)__globeIntro();},50);}
+  else{$("results").style.display="none";}
+  if(id==="pGuide")renderGuide();else if(id==="pStats"){if(window.Stats)Stats.render();}else if(id==="pHome"&&window.__home)__home.render();
+  else if(id==="pRide"&&window.__ride)__ride.render();else if(id==="pPlan"&&window.__plan)__plan.render();
   window.scrollTo(0,0);}
+$("backBtn").onclick=()=>{const P=PAGES[curPage];showPage(P[1]==="back"?(prevPage===curPage?"pHome":prevPage):P[1]);};
 $("ptabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)showPage(b.dataset.p);});
 // ---------- legend ----------
 function sw(o){const d=o.dash?` stroke-dasharray="${o.dash}"`:"";return `<svg width="28" height="12" viewBox="0 0 28 12"><line x1="2" y1="6" x2="26" y2="6" stroke="${o.c}" stroke-width="${o.w||3.2}"${d} stroke-linecap="${o.cap||"round"}" opacity="${o.op||1}"/>${o.arrow?`<polyline points="11,2 17,6 11,10" fill="none" stroke="${o.c}" stroke-width="2" stroke-linecap="round"/>`:""}</svg>`;}
@@ -2541,7 +2590,7 @@ $("tabbar").addEventListener("click",ev=>{const b=ev.target.closest("button");if
 
 function renderAllTrip(){renderTripSel();renderStops();renderCuts();renderChips();drawPins();renderRoute();}
 // ---------- boot ----------
-if(S.legend===undefined)S.legend=true; setLegend(!!S.legend);
+if(S.legend===undefined)S.legend=false; setLegend(!!S.legend);
 buildGraph(); drawBase(); drawOver(); drawLabels(); drawArrows();
 // ---------- globe: intro animation + "where am I" view ----------
 const G=(function(){
@@ -2963,7 +3012,7 @@ const Home=(function(){
         <div class="sub">${esc(from)}${to&&to!==from?" → "+esc(to):to?" (loop)":""} · ${tr.stops.length} stop${tr.stops.length===1?"":"s"}</div>
         <div class="sub">${sm.ok?`⏱ ${fmtDur(sm.t)} · 🏂 ${km(sm.m)} · 🚡 ${sm.lifts} lifts`:tr.stops.length<2?"Add stops on the map to plan this route":"⚠️ A leg can't be routed"}</div>
         ${prog>0?`<div class="pbar"><i style="width:${Math.round(prog*100)}%"></i></div><div class="sub">${Math.round(prog*100)}% done</div>`:""}
-        <div class="row" style="margin-top:6px"><button class="mini" data-h="map" data-i="${i}">🗺️ Map</button><button class="mini" data-h="steps" data-i="${i}">📋 Steps</button>${cur&&prog>0?`<button class="mini" data-h="home" data-i="${i}">🏠 Route home</button>`:""}</div></div></div>`;}).join("");
+        <div class="row" style="margin-top:6px"><button class="mini" data-h="ride" data-i="${i}">🏂 Ride</button><button class="mini" data-h="edit" data-i="${i}">✏️ Edit</button><button class="mini" data-h="map" data-i="${i}">🗺️ Map</button>${cur&&prog>0?`<button class="mini" data-h="home" data-i="${i}">🏠 Route home</button>`:""}</div></div></div>`;}).join("");
     h+=`</div>`;
     // run history
     const days=Stats.days(); const rows=days.map(d=>({d,A:Stats.get(d).tot})).filter(r=>r.A&&r.A.runs);
@@ -2977,13 +3026,186 @@ const Home=(function(){
   }
   $("pHome").addEventListener("click",ev=>{const b=ev.target.closest("[data-h]");if(!b)return;const a=b.dataset.h,i=b.dataset.i!=null?+b.dataset.i:null;
     if(a==="day"){showPage("pStats");Stats.show(b.dataset.d);return;}
-    if(a==="new"){showPage("pMap");$("newTrip").click();return;}
+    if(a==="new"){S.trips.push({name:"New route "+(S.trips.length+1),stops:[],cut:[]});S.cur=S.trips.length-1;S.goal=null;S.here=null;S.prog=0;save();afterChange();renderAllTrip();showPage("pPlan");return;}
     if(i!=null&&i!==S.cur){S.cur=i;S.goal=null;S.here=null;S.prog=0;save();afterChange();renderAllTrip();}
     if(a==="steps"){showPage("pGuide");return;}
+    if(a==="ride"){showPage("pRide");return;}
+    if(a==="edit"||a==="open"){showPage("pPlan");return;}
     if(a==="home"){showPage("pMap");setTimeout(()=>{openFs();$("homeBtn").click();},120);return;}
     showPage("pMap");setTimeout(()=>{viewMode=1;userMoved=true;fitView();},120);
   });
   return {render};
+})();
+
+// ---------- route planner, ride mode, run details, onboarding ----------
+const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+// ===== places index for adding stops =====
+const PLACES=(function(){
+  const out=[],seen=new Set();
+  const add=(n,ll,ic,kind)=>{const k=n+"|"+ll[0].toFixed(3)+ll[1].toFixed(3);if(seen.has(k))return;seen.add(k);out.push({n,ll,ic,kind});};
+  add("Valtur Cervinia Cristallo (hotel)",[45.9338,7.6352],"🏨","hotel");
+  [["Zermatt village",46.0207,7.7491],["Breuil-Cervinia village",45.9345,7.6305],["Valtournenche village",45.877,7.624]].forEach(([n,a,b])=>add(n,[a,b],"🏘️","village"));
+  D.pois.forEach(p=>{if(p.k==="station")add(p.n,p.ll,"🚡","station");else if(p.k==="food")add(p.n,p.ll,"🍴","food");});
+  D.lifts.forEach(l=>{if(!l.n)return;add(l.n+" (bottom)",C[l.v[0]],"⬆️","lift");add(l.n+" (top)",C[l.v[l.v.length-1]],"⛰️","lift");});
+  return out;})();
+function searchPlaces(q){q=q.trim().toLowerCase();if(q.length<2)return [];const w=q.split(/\s+/);
+  return PLACES.filter(p=>w.every(x=>p.n.toLowerCase().includes(x))).sort((a,b)=>{const ra=a.n.toLowerCase().startsWith(q)?0:1,rb=b.n.toLowerCase().startsWith(q)?0:1;return ra-rb||a.n.length-b.n.length;}).slice(0,20);}
+
+// ===== route planner =====
+const Plan=(function(){
+  const box=$("planBox");
+  function legsHtml(){const st=T().stops;if(st.length<2)return `<div class="sub">Add at least two stops to see the route.</div>`;
+    const tt=tripTotals();
+    let h=`<div class="statrow"><div class="stat"><span>Moving time</span><b>${tt.ok?fmtDur(tt.t):"–"}</b></div><div class="stat"><span>Snowboarded</span><b>${tt.ok?km(tt.m):"–"}</b></div><div class="stat"><span>Lift rides</span><b>${tt.ok?tt.lifts:"–"}</b></div></div>`;
+    h+=tt.per.map((s,i)=>`<div class="legrow"><span class="lnum">${i+1}</span><div style="flex:1;min-width:0"><b>${esc(st[i].n)} → ${esc(st[i+1].n)}</b><div class="sub">${s?`⏱ ${fmtDur(s.t)} · 🏂 ${km(s.m)} · 🚡 ${s.lifts}`:"⚠️ Can't route this leg: check closures or move a stop"}</div></div></div>`).join("");
+    return h;}
+  function render(){
+    const kc=$("ktCard");if(kc)$("keyTimesCard").appendChild(kc);
+    const tr=T(),st=tr.stops;
+    box.innerHTML=`<div class="card"><input class="fld title" id="planName" value="${esc(tr.name)}" aria-label="Route name">
+      <div class="row" style="margin-top:8px"><button class="btn pri" id="planRide">🏂 Start ride</button><button class="btn" id="planSteps">📋 Steps</button><button class="btn" id="planMap">🗺️ Map</button></div></div>
+      <div class="card"><h3>📍 Stops</h3>
+      <ul class="planstops" id="planStops">${st.map((s,i)=>`<li data-i="${i}"><span class="grip" aria-label="Drag to reorder">⠿</span><span class="num">${i+1}</span>
+        <input class="nm" data-i="${i}" data-f="n" value="${esc(s.n)}"><input class="tm" data-i="${i}" data-f="t" placeholder="arrive by" value="${esc(s.t||"")}"><button class="mini" data-del="${i}" aria-label="Remove stop">✕</button></li>`).join("")||`<li class="sub" style="padding:8px 0">No stops yet. Search below or pick them on the map.</li>`}</ul>
+      <div class="addstop"><input class="fld" id="placeQ" placeholder="🔍 Add a stop: hotel, hut, lift, station…" autocomplete="off"><div id="placeRes"></div></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="pickMap">📍 Pick stops on the map</button></div>
+      <div class="sub" style="margin-top:6px">Drag ⠿ to reorder. “Arrive by” times show in Ride mode, and you'll be warned if you're running late.</div></div>
+      <div class="card"><h3>🧭 Route</h3>${legsHtml()}</div>
+      <div id="ktSlot"></div>
+      <div class="card"><div class="row"><button class="mini" id="planDup">Duplicate route</button><button class="mini" id="planDel">Delete route</button></div></div>`;
+    $("ktSlot").appendChild($("ktCard"));
+    $("planName").onchange=e=>{tr.name=e.target.value.trim()||tr.name;save();renderTripSel();renderSum();};
+    $("planRide").onclick=()=>{showPage("pRide");if(window.GPS)GPS.start();};
+    $("planSteps").onclick=()=>showPage("pGuide");
+    $("planMap").onclick=()=>{showPage("pMap");setTimeout(()=>{viewMode=1;userMoved=true;fitView();},80);};
+    $("pickMap").onclick=()=>{S.mode="stop";save();renderModes();showPage("pMap");$("doneStops").hidden=false;toast("➕ Tap the map to add stops, then ✓ Done");};
+    $("planDup").onclick=()=>$("dupTrip").click();
+    $("planDel").onclick=e=>{const b=e.target;if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Tap again to delete";return;}$("delTrip").dataset.c="1";$("delTrip").click();showPage("pHome");};
+    const list=$("planStops");
+    list.addEventListener("change",ev=>{const i=ev.target.dataset.i,f=ev.target.dataset.f;if(i==null)return;st[+i][f]=ev.target.value;save();if(f==="n")afterTripEdit(false);});
+    list.addEventListener("click",ev=>{const d=ev.target.closest("[data-del]");if(!d)return;st.splice(+d.dataset.del,1);afterTripEdit(true);});
+    enableDrag(list);
+    const q=$("placeQ"),res=$("placeRes");
+    q.oninput=()=>{const r=searchPlaces(q.value);res.innerHTML=r.map((p,i)=>`<div data-p="${PLACES.indexOf(p)}">${p.ic} ${esc(p.n)}</div>`).join("")||(q.value.trim().length>1?`<div class="sub">No match. Try “Pick stops on the map”.</div>`:"");};
+    res.onclick=ev=>{const d=ev.target.closest("[data-p]");if(!d)return;const p=PLACES[+d.dataset.p];st.push({n:p.n,ll:C[nearestV(p.ll)].slice(),t:""});q.value="";res.innerHTML="";afterTripEdit(true);toast("Added "+p.n);};
+  }
+  function afterTripEdit(full){save();S.goal=null;drawPins();drawRoute();renderStops();renderRoute();if(full)render();else{const r=box.querySelector(".card:nth-of-type(3)");if(r)r.innerHTML=`<h3>🧭 Route</h3>`+legsHtml();}}
+  function enableDrag(list){let drag=null;
+    list.addEventListener("pointerdown",ev=>{const g=ev.target.closest(".grip");if(!g)return;const li=g.closest("li");ev.preventDefault();
+      drag={li,from:+li.dataset.i,y0:ev.clientY,h:li.getBoundingClientRect().height};li.classList.add("dragging");g.setPointerCapture(ev.pointerId);});
+    list.addEventListener("pointermove",ev=>{if(!drag)return;const dy=ev.clientY-drag.y0;drag.li.style.transform=`translateY(${dy}px)`;
+      const items=[...list.querySelectorAll("li[data-i]")];let to=drag.from+Math.round(dy/drag.h);to=Math.max(0,Math.min(items.length-1,to));drag.to=to;
+      items.forEach(it=>{const i=+it.dataset.i;if(it===drag.li)return;let off=0;if(drag.from<to&&i>drag.from&&i<=to)off=-drag.h;if(drag.from>to&&i<drag.from&&i>=to)off=drag.h;it.style.transform=off?`translateY(${off}px)`:"";});});
+    const end=()=>{if(!drag)return;const {from,to}=drag;drag=null;if(to!=null&&to!==from){const st=T().stops;const [m]=st.splice(from,1);st.splice(to,0,m);}afterTripEdit(true);};
+    list.addEventListener("pointerup",end);list.addEventListener("pointercancel",end);}
+  return {render};
+})();
+window.__plan=Plan;
+$("doneStops").onclick=()=>{$("doneStops").hidden=true;S.mode="info";save();renderModes();showPage("pPlan");};
+
+// ===== ride mode =====
+const Ride=(function(){
+  const box=$("rideBox"); let timer=null,lastRender=0;
+  function nextStop(){const st=T().stops;if(st.length<2||!tripLegs.length)return null;const p=S.prog||0;
+    for(let i=0;i<tripLegs.length;i++){const r=tripLegs[i];if(!r)continue;const end=legOff[i]+r.path.length-1;if(p<end)return {i:i+1,stop:st[i+1],legIdx:i};}
+    return {done:true};}
+  function offRoute(){if(S.here==null||tripPath.length<2)return false;const rest=tripPath.slice(Math.max(0,(S.prog||0)-3));let md=1e9;
+    for(const v of rest){const d=hav(C[v],C[S.here]);if(d<md)md=d;if(md<120)return false;}return md>150;}
+  function short(s){if(s.key==="x")return {ic:"🚶",big:"Walk / skate",sub:`${Math.round(s.m)} m to the next lift or piste`};
+    const f=F[s.key],o=f.o;
+    if(f.kind==="lift"){const end=stationNear(s.to);return {ic:DRAG.has(o.t)?"🎿":"🚡",big:`Take ${fname(f)}`,sub:`${(LIFTNAME[o.t]||"lift").toLowerCase()}${end?" up to "+end:""} · ~${Math.max(1,Math.round(s.secs/60))} min`,f};}
+    const dc=dclass(o.d);return {ic:"🏂",big:o.n||o.r?`Ride ${o.r?o.r+" ":""}${o.n||""}`.trim():"Follow the connecting piste",sub:`${DIFFWORD[dc]} · ${km(s.m)}`,dc,f};}
+  function live(){const P=Stats.points(todayKey());const last=P[P.length-1];const A=Stats.get(todayKey());
+    let state="—",cur=null;if(last&&Date.now()/1000-last[0]<180){const L=A.legs[A.legs.length-1];if(L){state=L.up?"On a lift":"Riding";if(!L.up)cur=L;}}
+    return {spd:last&&last[4]!=null&&Date.now()/1000-last[0]<60?last[4]:null,alt:S.here!=null&&window.ELEV?ELEV(C[S.here][0],C[S.here][1]):null,A,state,cur};}
+  function render(){
+    if($("pRide").hidden)return; lastRender=Date.now();
+    const st=T().stops,gps=window.GPS,rec=gps&&gps.on();
+    let h=`<div class="card ridehead"><div class="row" style="justify-content:space-between"><div><b>${esc(T().name)}</b><div class="sub">${rec?`<span class="recbadge">● REC</span> GPS on: tracking and recording`:gps?"GPS off":"Set your spot on the map (no GPS inside Claude)"}</div></div>
+      ${gps?`<button class="btn ${rec?"":"pri"}" id="rideToggle">${rec?"■ Stop":"▶ Start ride"}</button>`:`<button class="btn pri" id="rideHere">📍 Set my spot</button>`}</div></div>`;
+    if(st.length<2){box.innerHTML=h+`<div class="card"><div class="sub">This route has no stops yet.</div><button class="btn pri" id="ridePlan" style="margin-top:8px">Plan the route</button></div>`;bind();return;}
+    const ns=nextStop();
+    if(ns&&ns.done){h+=`<div class="card banner done"><div class="bic">🏁</div><div><div class="big">Route complete</div><div class="sub">You've reached ${esc(st[st.length-1].n)}.</div></div></div>`;}
+    else if(ns){
+      const from=S.here!=null?S.here:nearestV(st[0].ll), res=dijkstra(from,nearestV(ns.stop.ll));
+      if(offRoute())h+=`<div class="card banner warn"><div class="bic">⚠️</div><div><div class="big">Off your planned route</div><div class="sub">Here's the best way from where you are to ${esc(ns.stop.n)}.</div></div></div>`;
+      if(!res)h+=`<div class="card banner warn"><div class="bic">⛔</div><div><div class="big">No route to ${esc(ns.stop.n)}</div><div class="sub">Something on the way may be marked closed.</div></div></div>`;
+      else{const ls=legStats(res),steps=ls.steps,now=steps[0],then=steps[1];
+        const eta=new Date(Date.now()+ls.t*1000),etaS=String(eta.getHours()).padStart(2,"0")+":"+String(eta.getMinutes()).padStart(2,"0");
+        const tgt=toMin(ns.stop.t||""),late=!isNaN(tgt)&&eta.getHours()*60+eta.getMinutes()>tgt;
+        if(now){const a=short(now);h+=`<div class="card banner ${a.dc||""}"><div class="bic">${a.ic}</div><div style="min-width:0"><div class="big">${esc(a.big)}</div><div class="sub">${esc(a.sub)}</div>${then?`<div class="then">Then: ${esc(short(then).big)}</div>`:""}</div></div>`;}
+        h+=`<div class="card"><div class="sub">Next stop · ${ns.i+1} of ${st.length}</div><div class="nstop">${esc(ns.stop.n)}</div>
+          <div class="statrow"><div class="stat"><span>Time left</span><b>${fmtDur(ls.t)}</b></div><div class="stat"><span>Distance</span><b>${km(ls.m)}</b></div><div class="stat ${late?"lateS":""}"><span>ETA${ns.stop.t?" (aim "+esc(ns.stop.t)+")":""}</span><b>${etaS}</b></div></div>
+          ${late?`<div class="latebox">You're running late for ${esc(ns.stop.t)}. Consider skipping ahead or heading back now.</div>`:""}
+          <div class="row" style="margin-top:6px"><button class="mini" id="rideAll">📋 All ${steps.length} steps</button><button class="mini" id="rideMap">🗺️ Show on map</button><button class="mini" id="rideHome">🏠 Route home</button></div></div>`;}
+    }
+    const L=live(),A=L.A.tot;
+    h+=`<div class="card"><h3>📈 Live</h3><div class="statrow">
+      <div class="stat"><span>Speed</span><b>${L.spd!=null?Math.round(L.spd*3.6)+" km/h":"–"}</b></div>
+      <div class="stat"><span>Altitude</span><b>${L.alt!=null?Math.round(L.alt).toLocaleString()+" m":"–"}</b></div>
+      <div class="stat"><span>Now</span><b style="font-size:15px">${L.state}</b></div></div>
+      ${L.cur?`<div class="sub">This run: ${Math.round(-L.cur.dz)} m ↓ · ${(L.cur.dist/1000).toFixed(1)} km · top ${Math.round(L.cur.top*3.6)} km/h · ${Math.round((L.cur.t1-L.cur.t0)/60)} min</div>`:""}
+      <div class="sub">Today: ${A&&A.runs?`${A.runs} runs · ${Math.round(A.vert).toLocaleString()} m ↓ · ${(A.dist/1000).toFixed(1)} km · top ${Math.round(A.top*3.6)} km/h`:"no runs recorded yet"}</div></div>`;
+    box.innerHTML=h;bind();renderChips();
+  }
+  function bind(){
+    const t=$("rideToggle");if(t)t.onclick=()=>{if(GPS.on())GPS.stop();else GPS.start();setTimeout(render,200);};
+    const hr=$("rideHere");if(hr)hr.onclick=()=>{S.mode="here";save();renderModes();showPage("pMap");toast("📍 Tap where you are");};
+    const rp=$("ridePlan");if(rp)rp.onclick=()=>showPage("pPlan");
+    const ra=$("rideAll");if(ra)ra.onclick=()=>showPage("pGuide");
+    const rm=$("rideMap");if(rm)rm.onclick=()=>{const ns=nextStop();if(ns&&ns.stop){S.goal=nearestV(ns.stop.ll);if(S.here==null)S.here=nearestV(T().stops[0].ll);afterChange();}showPage("pMap");setTimeout(()=>{fitRoute();showSheet(routeHtml(true));},120);};
+    const rh=$("rideHome"),st=T().stops;if(rh)rh.onclick=()=>{if(S.here==null)S.here=nearestV(st[0].ll);S.goal=nearestV(st[st.length-1].ll);afterChange();showPage("pMap");setTimeout(()=>{fitRoute();showSheet(routeHtml(true));},120);};
+  }
+  setInterval(()=>{if(!$("pRide").hidden&&Date.now()-lastRender>4000)render();},5000);
+  return {render};
+})();
+window.__ride=Ride;
+
+// ===== run details (tap a run in Stats) =====
+const RunSheet=(function(){
+  const el=$("runSheet");
+  function chart(vals,col,unit,h){const n=vals.length;if(n<2)return "";const W=320,H=h||80,mn=Math.min(...vals),mx=Math.max(...vals),r=(mx-mn)||1;
+    const pts=vals.map((v,i)=>`${(i/(n-1)*W).toFixed(1)},${(H-4-(v-mn)/r*(H-12)).toFixed(1)}`).join(" ");
+    return `<svg viewBox="0 0 ${W} ${H}" class="chart"><polyline points="0,${H} ${pts} ${W},${H}" fill="${col}" opacity=".18"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round"/><text x="4" y="12" class="ct">${Math.round(mx)} ${unit}</text><text x="4" y="${H-6}" class="ct">${Math.round(mn)} ${unit}</text></svg>`;}
+  function trackSvg(P){let a=1e9,b=-1e9,c=1e9,d=-1e9;P.forEach(p=>{a=Math.min(a,p[1]);b=Math.max(b,p[1]);c=Math.min(c,p[2]);d=Math.max(d,p[2]);});
+    const padLL=0.002;a-=padLL;b+=padLL;c-=padLL*1.4;d+=padLL*1.4;const W=320,H=220,kx=0.69,sx=(d-c)*kx,sy=b-a,k=Math.min(W/sx,H/sy);
+    const X=lo=>((lo-c)*kx)*k+(W-sx*k)/2,Y=la=>H-(la-a)*k-(H-sy*k)/2,inb=ll=>ll[0]>a&&ll[0]<b&&ll[1]>c&&ll[1]<d;
+    let bg="";for(const key in F){const f=F[key];if(!f.o.v.some(v=>inb(C[v])))continue;const pts=f.o.v.map(v=>X(C[v][1]).toFixed(1)+","+Y(C[v][0]).toFixed(1)).join(" ");
+      bg+=f.kind==="lift"?`<polyline points="${pts}" fill="none" stroke="#334155" stroke-width="1.2" stroke-dasharray="5 3"/>`:`<polyline points="${pts}" fill="none" stroke="${dcolor(f.o.d)}" stroke-width="2.2" opacity=".55"/>`;}
+    const tr=P.map(p=>X(p[2]).toFixed(1)+","+Y(p[1]).toFixed(1)).join(" "),s=P[0],e=P[P.length-1];
+    return `<svg viewBox="0 0 ${W} ${H}" class="trk"><rect width="${W}" height="${H}" fill="#eef2f7" rx="10"/>${bg}<polyline points="${tr}" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><polyline points="${tr}" fill="none" stroke="#0ea5e9" stroke-width="3.2" stroke-linejoin="round"/><circle cx="${X(s[2])}" cy="${Y(s[1])}" r="5" fill="#22c55e" stroke="#fff" stroke-width="2"/><circle cx="${X(e[2])}" cy="${Y(e[1])}" r="5" fill="#ef4444" stroke="#fff" stroke-width="2"/></svg>`;}
+  function open(day,t0){
+    const A=Stats.get(day),L=A.legs.find(l=>l.t0===t0);if(!L)return;const P=Stats.points(day).slice(L.a,L.b+1);if(P.length<2)return;
+    const spd=[];for(let i=1;i<P.length;i++){let s=P[i][4];if(s==null){const dt=P[i][0]-P[i-1][0];s=dt>0?hav([P[i-1][1],P[i-1][2]],[P[i][1],P[i][2]])/dt:0;}spd.push(Math.min(36,s)*3.6);}
+    const sm=spd.map((v,i)=>{const w=spd.slice(Math.max(0,i-2),i+3);return w.reduce((x,y)=>x+y,0)/w.length;});
+    const ele=P.map(p=>p[3]).filter(v=>v!=null),dur=L.t1-L.t0,clock=t=>{const d=new Date(t*1000);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
+    el.innerHTML=`<div class="rs"><div class="rshead"><b>${L.up?"🚡":"🏂"} ${esc(L.name)}</b><button id="rsX" aria-label="Close">✕</button></div>
+      <div class="sub">${clock(L.t0)}–${clock(L.t1)}</div>${trackSvg(P)}
+      <div class="statrow">${L.up?`<div class="stat"><span>Climb</span><b>+${Math.round(L.dz)} m</b></div>`:`<div class="stat"><span>Vertical ↓</span><b>${Math.round(-L.dz)} m</b></div>`}
+        <div class="stat"><span>Distance</span><b>${(L.dist/1000).toFixed(2)} km</b></div><div class="stat"><span>Time</span><b>${Math.floor(dur/60)}:${String(dur%60).padStart(2,"0")}</b></div>
+        ${L.up?"":`<div class="stat"><span>Top speed</span><b>${Math.round(L.top*3.6)} km/h</b></div><div class="stat"><span>Avg speed</span><b>${dur?Math.round(L.dist/dur*3.6):0} km/h</b></div>`}</div>
+      ${L.up?"":`<h4>Speed</h4>${chart(sm,"#0ea5e9","km/h")}`}${ele.length>1?`<h4>Elevation</h4>${chart(ele,"#7c3aed","m")}`:""}</div>`;
+    el.hidden=false;$("rsX").onclick=()=>{el.hidden=true;};el.onclick=e=>{if(e.target===el)el.hidden=true;};}
+  $("pStats").addEventListener("click",ev=>{const li=ev.target.closest("li[data-t0]");if(!li)return;const dp=$("dayPick");open(dp?dp.value:todayKey(),+li.dataset.t0);});
+  return {open};
+})();
+
+// ===== first-run intro =====
+const Onboard=(function(){
+  const el=$("onboard"),slides=[
+    ["🗺️","Plan your day","Create a route with stops like your hotel, a lunch hut and the village across the border. The planner finds the way over real lifts and pistes."],
+    ["🏂","Ride with guidance","Ride mode shows the next lift or piste, time to your next stop and countdowns to the last lifts back. It warns you if you go off route."],
+    ["📊","Record every run","Turn on GPS and your runs, vertical and top speed are recorded automatically. Save days to Apple Health or Strava."]];
+  let i=0;
+  function show(){el.innerHTML=`<div class="ob"><div class="obic">${slides[i][0]}</div><h2>${slides[i][1]}</h2><p>${slides[i][2]}</p>
+    <div class="dots">${slides.map((_,k)=>`<i class="${k===i?"on":""}"></i>`).join("")}</div>
+    <button class="btn pri obgo" id="obNext">${i<slides.length-1?"Next":"Get started"}</button>${i<slides.length-1?`<button class="obskip" id="obSkip">Skip</button>`:""}</div>`;
+    $("obNext").onclick=()=>{if(i<slides.length-1){i++;show();}else done();};const sk=$("obSkip");if(sk)sk.onclick=done;}
+  function done(){el.hidden=true;S.onboarded=true;save();}
+  function start(){i=0;el.hidden=false;show();}
+  if(!S.onboarded)start();
+  $("replayIntro").onclick=start;
+  return {start};
 })();
 
 window.__integrations=Integrations;window.__home=Home;Stats.render();Home.render();
@@ -2993,7 +3215,7 @@ window.__integrations=Integrations;window.__home=Home;Stats.render();Home.render
   const BG=NATIVE?Capacitor.registerPlugin("BackgroundGeolocation"):null;
   const btn=$("gpsBtn"); if(!NATIVE&&!("geolocation" in navigator))return; btn.hidden=false;
   let watch=null, follow=false, lastV=null, lastT=0, accCircle=null, dot=null;
-  function setBtn(){btn.classList.toggle("on",!!watch);btn.title=watch?(follow?"GPS on, following":"GPS on"):"Follow my GPS";}
+  function setBtn(){const rd=document.getElementById("recDot");if(rd)rd.hidden=!watch;if(window.__ride)__ride.render();btn.classList.toggle("on",!!watch);btn.title=watch?(follow?"GPS on, following":"GPS on"):"Follow my GPS";}
   let lastSave=0;
   function onPos(p){ const now0=Date.now(); if(window.Stats&&bounds.pad(0.15).contains([p.coords.latitude,p.coords.longitude]))Stats.add(p);
     const ll=[p.coords.latitude,p.coords.longitude], acc=p.coords.accuracy||50;
@@ -3028,6 +3250,7 @@ window.__integrations=Integrations;window.__home=Home;Stats.render();Home.render
   function stop(){if(watch!=null){if(NATIVE){if(watch!=="pending")BG.removeWatcher({id:watch});}else navigator.geolocation.clearWatch(watch);}watch=null;follow=false;S.gps=false;save();setBtn();
     if(accCircle){map.removeLayer(accCircle);map.removeLayer(dot);accCircle=dot=null;}}
   $("awayPill").onclick=()=>G.open();
+  window.GPS={start(){if(!watch)start();},stop(){stop();},on:()=>watch!=null,native:NATIVE};
   btn.onclick=()=>{ if(!watch)start(); else if(!follow){follow=true;setBtn();toast("Following you");} else {stop();toast("GPS off");} };
   map.on("dragstart",()=>{if(follow){follow=false;setBtn();}});
   if(S.gps)start();
