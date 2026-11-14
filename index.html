@@ -2968,6 +2968,13 @@ const Integrations=(function(){
     for(let i=0;i<15&&!up.activity_id&&!up.error;i++){await new Promise(r=>setTimeout(r,2000));up=await api("strava",`https://www.strava.com/api/v3/uploads/${up.id}`);}
     if(up.error)throw new Error(up.error); if(!up.activity_id)throw new Error("Strava is still processing it: check the Strava app in a minute");
     I.strava.done=I.strava.done||{};I.strava.done[day]=up.activity_id;saveI();return up.activity_id;}
+  async function shareGpx(day){
+    const P=Stats.points(day),A=Stats.get(day).tot; if(P.length<10||!A)throw new Error("Not enough GPS data for this day");
+    const name=`Snowboarding · ${A.runs} runs · ${Math.round(A.vert).toLocaleString()} m`, file=`ski-${day}.gpx`, text=gpx(P,name);
+    if(NATIVE){await Health.shareFile({name:file,text});return;}
+    const f=new File([text],file,{type:"application/gpx+xml"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:name});}catch(e){if(e.name!=="AbortError")throw e;}return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=file;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);}
   // ----- Apple Health -----
   async function healthAuth(){const r=await Health.requestAuthorization();I.health.ok=true;saveI();return r;}
   async function healthSave(day){const P=Stats.points(day),A=Stats.get(day).tot;if(P.length<10||!A)throw new Error("Not enough GPS data for this day");
@@ -2988,7 +2995,9 @@ const Integrations=(function(){
   function render(el,day){
     lastEl=el;lastDay=day; const old=document.getElementById("intCard");if(old)old.remove();
     const has=Stats.points(day).length>=10, card=document.createElement("div");card.className="card";card.id="intCard";
-    if(!NATIVE&&!WEBAPP){card.innerHTML=`<h3>Connections</h3><div class="sub">Apple Health, Strava and Whoop work in the Ski Planner iPhone app.</div>`;el.appendChild(card);return;}
+    const gpxBox=`<div class="leg"><h4>🟧 Strava</h4><div class="sub">Share the day as a GPX file (save it to Files or AirDrop it to your Mac), then upload it at <a href="https://www.strava.com/upload/select" target="_blank" rel="noopener">strava.com/upload</a> and pick <b>Snowboard</b> as the sport.</div>
+      <div class="row" style="margin-top:6px"><button class="btn ${has?"pri":""}" data-x="gpx-share" ${has?"":"disabled"}>📤 Share GPX file</button><a class="btn" href="https://www.strava.com/upload/select" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Open Strava upload</a></div>`;
+    if(!NATIVE&&!WEBAPP){card.innerHTML=`<h3>Connections</h3><div class="sub">Apple Health and Whoop work in the Ski Planner iPhone app.</div>${gpxBox}</div>`;el.appendChild(card);card.onclick=onClick;return;}
     let h=`<h3>Connections</h3>`;
     // Apple Health
     h+=`<div class="leg"><h4>❤️ Apple Health</h4>`;
@@ -2998,12 +3007,13 @@ const Integrations=(function(){
       <button class="btn ${has?"pri":""}" data-x="health-save" ${has?"":"disabled"}>${I.health.saved&&I.health.saved[day]?"✓ Saved to Health (save again)":"Save this day to Health"}</button></div>`;
     h+=`</div>`;
     // Strava
-    h+=`<div class="leg"><h4>🟧 Strava</h4>`;
+    h+=gpxBox+`
+      <details style="margin-top:8px"><summary class="sub" style="cursor:pointer">Strava subscriber? Set up one-tap upload</summary>`;
     if(!I.strava.id||!I.strava.secret)h+=`<div class="sub">One-time setup: create an app at <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a> (any name, website <b>boreder13.github.io</b>, Authorization Callback Domain <b>boreder13.github.io</b>), then paste its Client ID and Client Secret:</div>${setupFields("strava")}`;
     else if(!I.strava.tok)h+=`<div class="row" style="margin-top:4px"><button class="btn pri" data-x="connect-strava">Connect Strava</button><button class="mini" data-x="reset-strava">Change app keys</button></div>${pasteRow("strava")}`;
     else{const done=I.strava.done&&I.strava.done[day];
       h+=`<div class="sub">Connected${I.strava.who?" as "+esc(I.strava.who):""}.</div><div class="row" style="margin-top:6px"><button class="btn ${has?"pri":""}" data-x="strava-up" ${has?"":"disabled"}>${done?"Upload again":"⬆️ Upload this day"}</button>${done?`<a class="btn" href="https://www.strava.com/activities/${done}" target="_blank" rel="noopener">View on Strava</a>`:""}<button class="mini" data-x="disc-strava">Disconnect</button></div>`;}
-    h+=`</div>`;
+    h+=`</details></div>`;
     // Whoop
     h+=`<div class="leg"><h4>⚫ Whoop</h4>`;
     if(!NATIVE)h+=`<div class="sub">Needs the native iPhone app (Whoop doesn't allow web pages to connect).</div>`;
@@ -3033,6 +3043,7 @@ const Integrations=(function(){
       else if(x.startsWith("reset-")){const s=x.slice(6);I[s]={};saveI();}
       else if(x.startsWith("disc-")){const s=x.slice(5);delete I[s].tok;saveI();}
       else if(x.startsWith("code-")){const s=x.slice(5),c=$(s+"Code").value.trim();if(c)await finish(c,`x-${s}`);}
+      else if(x==="gpx-share"){b.textContent="Preparing…";await shareGpx(day);}
       else if(x==="health-auth"){await healthAuth();toast("❤️ Apple Health connected");}
       else if(x==="health-save"){b.textContent="Saving…";await healthSave(day);toast("❤️ Saved to Apple Health");}
       else if(x==="strava-up"){b.textContent="Uploading…";const id=await stravaUpload(day);toast("🟧 Uploaded to Strava");}
@@ -3412,7 +3423,7 @@ const Alerts=(function(){
 })();
 window.__alerts=Alerts;
 
-window.__integrations=Integrations;window.__home=Home;Stats.render();Home.render();
+window.__integrations=Integrations;window.__home=Home;window.Stats=Stats;Stats.render();Home.render();
 // ---------- iPhone web app: live GPS ----------
 (function(){
   const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());

@@ -21,7 +21,7 @@ Replace `www/index.html` (or pull the latest repository), then run `npx cap sync
 ## Connections (Stats tab → Connections)
 
 - **Apple Health** (native app): tap Connect, allow access, then "Save this day to Health". Heart rate from Health shows per run in the Stats timeline.
-- **Strava** (native app and web app): create an app at strava.com/settings/api with website and Authorization Callback Domain `boreder13.github.io`, paste its Client ID and Secret into the app, then Connect and "Upload this day".
+- **Strava** (native app and web app): tap **Share GPX file**, save it to Files or AirDrop it to your Mac, then upload it at strava.com/upload with sport Snowboard. Strava's API now needs a paid Strava subscription; subscribers can instead create an app at strava.com/settings/api (website and Authorization Callback Domain `boreder13.github.io`), paste its Client ID and Secret under "Strava subscriber? Set up one-tap upload", then Connect and "Upload this day".
 - **Whoop** (native app): create an app at developer-dashboard.whoop.com with redirect URL `https://boreder13.github.io/ski-planner/callback.html` and scopes `read:workout`, `read:cycles`, `offline`; paste its Client ID and Secret, then Connect. Shows day strain and heart rate plus each workout's strain and heart rate.
 
 Keys and tokens are stored only on your phone, never in this repository.

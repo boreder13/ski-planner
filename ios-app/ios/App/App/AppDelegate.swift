@@ -62,7 +62,8 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "isAvailable", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestAuthorization", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "saveWorkout", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "heartRate", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "heartRate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shareFile", returnType: CAPPluginReturnPromise)
     ]
     private let store = HKHealthStore()
     private var distanceType: HKQuantityType { HKQuantityType.quantityType(forIdentifier: .distanceDownhillSnowSports)! }
@@ -146,5 +147,21 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve(["samples": out])
         }
         store.execute(query)
+    }
+
+    // Writes a text file (e.g. a GPX track) to a temp folder and opens the iOS share sheet for it.
+    @objc func shareFile(_ call: CAPPluginCall) {
+        guard let name = call.getString("name"), let text = call.getString("text") else { call.reject("name and text are required"); return }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        do { try text.write(to: url, atomically: true, encoding: .utf8) } catch { call.reject(error.localizedDescription); return }
+        DispatchQueue.main.async {
+            guard let vc = self.bridge?.viewController else { call.reject("No view to present from"); return }
+            let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            sheet.popoverPresentationController?.sourceView = vc.view
+            sheet.completionWithItemsHandler = { _, completed, _, error in
+                if let error = error { call.reject(error.localizedDescription) } else { call.resolve(["completed": completed]) }
+            }
+            vc.present(sheet, animated: true)
+        }
     }
 }
