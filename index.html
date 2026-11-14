@@ -725,6 +725,28 @@ li[data-t0]{cursor:pointer}
 .ob{max-width:360px;text-align:center}.obic{font-size:72px}.ob h2{margin:10px 0 6px;font-size:24px}.ob p{color:#cbd5e1;font-size:16px;line-height:1.5}
 .ob .dots{margin:18px 0}.ob .dots i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#334155;margin:0 4px}.ob .dots i.on{background:#e8eef7}
 .obgo{width:100%;padding:13px;font-size:16px;font-weight:700}.obskip{background:none;border:0;color:var(--mute);margin-top:12px;font-size:14px}
+#alertBar{position:fixed;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top));z-index:1250}
+#alertBar[hidden]{display:none}
+.ab+.ab{margin-top:6px}
+.ab{display:flex;gap:10px;align-items:flex-start;background:#1e293b;border:1px solid #475569;border-radius:14px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.45);font-size:14px}
+.ab.warn{background:#422006;border-color:#f59e0b}.ab.bad{background:#450a0a;border-color:#ef4444}
+.ab .abi{font-size:24px}.ab div{flex:1}.ab button{background:none;border:0;color:#cbd5e1;font-size:18px}
+.sh{margin:12px 0 4px;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+.lt{list-style:none;margin:6px 0 0;padding:0}
+.lt li{display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.lt li.onroute{box-shadow:inset 3px 0 0 #7c3aed;padding-left:8px}
+.lt input{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px dashed #3a4c6c;color:var(--ink);font:inherit;font-size:14px}
+.lt input.tm{flex:0 0 60px;text-align:center}
+.fld.num{width:70px;text-align:center;margin:0 6px}
+#alMins{margin:0 6px}
+.wdays{display:flex;gap:6px}
+.wd{flex:1;background:var(--panel2);border-radius:10px;padding:6px 8px;border:1px solid transparent}
+.wd span{display:block;font-size:11px;color:var(--mute)}.wd b{display:block;font-size:16px}
+.wd.watch{border-color:#f59e0b}.wd.close{border-color:#ef4444}
+.wb{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;margin-top:2px}
+.wb.ok{background:#14532d;color:#bbf7d0}.wb.watch{background:#78350f;color:#fde68a}.wb.close{background:#7f1d1d;color:#fecaca}
+.wrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.wnum{text-align:right;font-size:13px}
 #recDot{position:absolute;top:4px;right:calc(50% - 18px);width:9px;height:9px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--bg);animation:pulse 1.4s infinite}
 @keyframes pulse{50%{opacity:.35}}
 #mapShell.fs{bottom:calc(62px + env(safe-area-inset-bottom))!important}
@@ -929,6 +951,7 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
 
 </div>
 <div id="pMore" hidden>
+<div id="alertsBox"></div>
 <div class="card">
   <h3>Lift &amp; trail status</h3>
   <div class="sub">Check the official live pages each morning, then mark anything closed (tap it on the map → Mark closed). Routes avoid closed lifts and trails. Marks clear automatically the next day.</div>
@@ -990,6 +1013,7 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
 <div class="card"><h3>About</h3><div class="sub">Trail data © OpenStreetMap contributors (ODbL), terrain from AWS Terrain Tiles. Data may be incomplete or out of date: follow on-mountain signage and the resorts' official maps. Your trips, stats and keys stay on this phone.</div>
   <div class="row" style="margin-top:8px"><button class="mini" id="replayIntro">Show the intro again</button></div></div>
 </div><!-- /pMore -->
+<div id="alertBar" hidden></div>
 <div id="onboard" hidden></div>
 <div id="runSheet" hidden></div>
 <footer hidden>
@@ -2481,7 +2505,7 @@ function showPage(id){if(!PAGES[id])id="pHome";if(id!==curPage){prevPage=curPage
   if(inMap){setTimeout(()=>{map.invalidateSize();if(!userMoved)fitView();if(window.__globeIntro)__globeIntro();},50);}
   else{$("results").style.display="none";}
   if(id==="pGuide")renderGuide();else if(id==="pStats"){if(window.Stats)Stats.render();}else if(id==="pHome"&&window.__home)__home.render();
-  else if(id==="pRide"&&window.__ride)__ride.render();else if(id==="pPlan"&&window.__plan)__plan.render();
+  else if(id==="pRide"&&window.__ride)__ride.render();else if(id==="pMore"&&window.__alerts)__alerts.render();else if(id==="pPlan"&&window.__plan)__plan.render();
   window.scrollTo(0,0);}
 $("backBtn").onclick=()=>{const P=PAGES[curPage];showPage(P[1]==="back"?(prevPage===curPage?"pHome":prevPage):P[1]);};
 $("ptabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)showPage(b.dataset.p);});
@@ -3135,6 +3159,8 @@ const Ride=(function(){
           ${late?`<div class="latebox">You're running late for ${esc(ns.stop.t)}. Consider skipping ahead or heading back now.</div>`:""}
           <div class="row" style="margin-top:6px"><button class="mini" id="rideAll">📋 All ${steps.length} steps</button><button class="mini" id="rideMap">🗺️ Show on map</button><button class="mini" id="rideHome">🏠 Route home</button></div></div>`;}
     }
+    const wr=window.__alerts&&__alerts.windRisk();
+    if(wr)h+=`<div class="card banner ${wr.lvl==="close"?"warn":""}" id="rideWind"><div class="bic">💨</div><div><div class="big">${wr.lvl==="close"?"Wind closure risk today":"Windy today"}</div><div class="sub">Gusts up to ${wr.worst.g} km/h at ${esc(wr.worst.p)}. Check live lift status, and see More → Wind alerts.</div></div></div>`;
     const L=live(),A=L.A.tot;
     h+=`<div class="card"><h3>📈 Live</h3><div class="statrow">
       <div class="stat"><span>Speed</span><b>${L.spd!=null?Math.round(L.spd*3.6)+" km/h":"–"}</b></div>
@@ -3203,6 +3229,148 @@ const Onboard=(function(){
   $("replayIntro").onclick=start;
   return {start};
 })();
+
+// ---------- lift closing + wind alerts (More tab) ----------
+const Alerts=(function(){
+  const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+  const CAN_FETCH=NATIVE||/github\.io$/.test(location.hostname)||location.hostname==="localhost";
+  const LN=NATIVE?Capacitor.registerPlugin("LocalNotifications"):null;
+  // Winter 2026/27 closing times (cervinia.it lift timetable; Zermatt last connections for Cervinia, January). Editable.
+  const DEFAULT_TIMES=[
+    {label:"Breuil – Plan Maison gondola",keys:["Plan Maison|gondola"],close:"16:50"},
+    {label:"Breuil – Plan Maison cable car",keys:["Plan Maison|cable_car"],close:"16:00"},
+    {label:"Plan Maison chairlift",keys:["Plan Maison|chair_lift"],close:"15:40"},
+    {label:"Cime Bianche Laghi",keys:["Cime Bianche Laghi"],close:"16:20"},
+    {label:"Plateau Rosà cable car",keys:["Funivia del Plateau Rosa"],close:"16:10"},
+    {label:"Bontadini chairlift",keys:["Bontadini"],close:"15:50"},
+    {label:"Fornet chairlift",keys:["Fornet"],close:"15:50"},
+    {label:"Zermatt – Furi (last up for Cervinia)",keys:["Zermatt - Furi","Matterhorn Express 1"],close:"14:50"},
+    {label:"Furggsattel chairlift",keys:["Furggsattel Gletscherbahn"],close:"15:20"},
+    {label:"Matterhorn Glacier Ride II",keys:["Matterhorn Glacier Ride II"],close:"15:30"},
+    {label:"Trockener Steg – Klein Matterhorn",keys:["Trockener Steg - Klein Matterhorn Glacier Ride","Trockener Steg - Matterhorn glacier paradise"],close:"15:30"}];
+  const WIND_POINTS=[
+    {n:"Plateau Rosà / Testa Grigia",ll:[45.9392,7.7075],e:3480,lifts:"Plateau Rosà cable car, Cime Bianche Laghi, Furggsattel"},
+    {n:"Plan Maison",ll:[45.9408,7.6542],e:2555,lifts:"Plan Maison – Cime Bianche Laghi"},
+    {n:"Trockener Steg",ll:[45.9640,7.7220],e:2939,lifts:"Furi – Trockener Steg, Furggsattel"},
+    {n:"Klein Matterhorn",ll:[45.9385,7.7300],e:3883,lifts:"Glacier Ride, Glacier Ride II"}];
+  S.al=Object.assign({lift:true,mins:30,routeOnly:true,wind:true,watch:45,close:65,brief:"07:30"},S.al||{});
+  if(!S.liftTimes)S.liftTimes=JSON.parse(JSON.stringify(DEFAULT_TIMES));
+  S.sent=S.sent||{};
+  const today=()=>todayKey();
+  // ----- which lifts matter today -----
+  function liftKeyMatches(entry,f){const n=(f.o.n||""),t=f.o.t;return entry.keys.some(k=>{const [kn,kt]=k.split("|");return n.toLowerCase()===kn.toLowerCase()&&(!kt||kt===t);});}
+  function routeLiftKeys(){const ks=new Set();tripKeys.slice(S.prog||0).forEach(k=>{if(k[0]==="l")ks.add(k);});if(curRoute)curRoute.keys.forEach(k=>{if(k[0]==="l")ks.add(k);});return ks;}
+  function relevant(){const ks=[...routeLiftKeys()].map(k=>F[k]).filter(Boolean);
+    return S.liftTimes.filter(e=>!S.al.routeOnly||ks.some(f=>liftKeyMatches(e,f)));}
+  const atToday=hm=>{const m=toMin(hm);if(isNaN(m))return null;const d=new Date();d.setHours(0,0,0,0);d.setMinutes(m);return d;};
+  // ----- in-app alert bar -----
+  const bar=$("alertBar");
+  function showBar(ic,title,body,kind){const it=document.createElement("div");it.className="ab "+(kind||"");
+    it.innerHTML=`<span class="abi">${ic}</span><div><b>${esc(title)}</b><div>${esc(body)}</div></div><button aria-label="Dismiss">✕</button>`;
+    const kill=()=>{it.remove();if(!bar.children.length)bar.hidden=true;};it.querySelector("button").onclick=kill;setTimeout(kill,45000);
+    bar.prepend(it);while(bar.children.length>3)bar.lastChild.remove();bar.hidden=false;}
+  function once(key){const k=today()+"|"+key;if(S.sent[k])return false;S.sent[k]=1;
+    for(const x in S.sent)if(!x.startsWith(today()))delete S.sent[x];save();return true;}
+  // ----- native notifications -----
+  async function perm(){if(!LN)return false;try{const p=await LN.requestPermissions();return p.display==="granted";}catch(e){return false;}}
+  async function cancelRange(a,n){if(!LN)return;const ids=[];for(let i=0;i<n;i++)ids.push({id:a+i});try{await LN.cancel({notifications:ids});}catch(e){}}
+  async function scheduleLift(){if(!LN)return;await cancelRange(3000,60);if(!S.al.lift)return;if(!(await perm()))return;
+    const now=new Date(),list=[];relevant().forEach((e,i)=>{const c=atToday(e.close);if(!c)return;const at=new Date(c.getTime()-S.al.mins*60000);
+      if(at>now)list.push({id:3000+i,title:`⏱ ${e.label} closes at ${e.close}`,body:`${S.al.mins} minutes left. Open Ski Planner for the fastest way.`,schedule:{at}});});
+    if(list.length)try{await LN.schedule({notifications:list});}catch(e){}}
+  async function notifyNow(id,title,body){if(LN&&await perm()){try{await LN.schedule({notifications:[{id,title,body,schedule:{at:new Date(Date.now()+1500)}}]});}catch(e){}}}
+  // ----- lift check (runs every 30 s while the app is open) -----
+  function checkLifts(){if(!S.al.lift)return;const now=Date.now();
+    relevant().forEach(e=>{const c=atToday(e.close);if(!c)return;const left=(c.getTime()-now)/60000;
+      if(left>0&&left<=S.al.mins&&once("lift:"+e.label))showBar("⏱",`${e.label} closes at ${e.close}`,`${Math.ceil(left)} min left. Check Ride for the fastest way.`,"warn");});}
+  // ----- wind forecast -----
+  const romeHour=t=>+new Date(t).toLocaleString("en-GB",{timeZone:"Europe/Rome",hour:"2-digit",hour12:false});
+  const romeDay=t=>new Date(t).toLocaleDateString("en-CA",{timeZone:"Europe/Rome"});
+  const romeHM=t=>new Date(t).toLocaleTimeString("en-GB",{timeZone:"Europe/Rome",hour:"2-digit",minute:"2-digit"});
+  let fetching=false;
+  async function fetchWind(force){
+    if(!CAN_FETCH||fetching)return; if(!force&&S.wind&&Date.now()-S.wind.at<60*60000)return; fetching=true;
+    const q=k=>WIND_POINTS.map(p=>k==="lat"?p.ll[0]:k==="lon"?p.ll[1]:p.e).join(",");
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${q("lat")}&longitude=${q("lon")}&elevation=${q("e")}&hourly=wind_speed_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=GMT&forecast_days=3`;
+    try{const r=await fetch(url);const j=await r.json();const arr=Array.isArray(j)?j:[j];
+      S.wind={at:Date.now(),pts:arr.map((x,i)=>({n:WIND_POINTS[i].n,h:x.hourly.time.map((t,k)=>[Date.parse(t+"Z"),Math.round(x.hourly.wind_speed_10m[k]),Math.round(x.hourly.wind_gusts_10m[k])])}))};save();
+      evaluateWind(true);}catch(e){S.windErr=String(e.message||e);}
+    fetching=false; if(!$("pMore").hidden)render();}
+  function liftHours(h,day){return h.filter(x=>romeDay(x[0])===day&&romeHour(x[0])>=8&&romeHour(x[0])<=17);}
+  function level(g){return g>=S.al.close?"close":g>=S.al.watch?"watch":"ok";}
+  function windSummary(){if(!S.wind)return null;const days=[...new Set(S.wind.pts[0].h.map(x=>romeDay(x[0])))].slice(0,3);
+    return days.map(d=>{let worst={g:0};S.wind.pts.forEach(p=>liftHours(p.h,d).forEach(x=>{if(x[2]>worst.g)worst={g:x[2],t:x[0],p:p.n,s:x[1]};}));return {d,worst,lvl:level(worst.g)};});}
+  async function evaluateWind(fresh){
+    if(!S.al.wind||!S.wind)return; const now=Date.now(), soon=now+3*3600e3;
+    // closure-level gusts expected within the next 3 hours
+    let hit=null;S.wind.pts.forEach(p=>p.h.forEach(x=>{if(x[0]>=now-3600e3&&x[0]<=soon&&romeHour(x[0])>=8&&romeHour(x[0])<=17&&x[2]>=S.al.close&&(!hit||x[2]>hit.g))hit={g:x[2],t:x[0],p:p.n};}));
+    if(hit&&once("wind-soon:"+romeDay(hit.t))){const title=`💨 Wind may close lifts: gusts ${hit.g} km/h`,body=`Forecast at ${hit.p} around ${romeHM(hit.t)}. Crossing lifts often stop in strong wind: plan your way back early.`;
+      showBar("💨",title,body,"bad");notifyNow(3150,title,body);}
+    // morning briefing notifications (native) for days with watch/closure-level wind
+    if(LN){await cancelRange(3100,5);if(!(await perm()))return;const list=[];(windSummary()||[]).forEach((s,i)=>{if(s.lvl==="ok")return;
+      const [hh,mm]=(S.al.brief||"07:30").split(":").map(Number);const at=new Date(s.d+"T00:00:00");at.setHours(hh||7,mm||0,0,0);if(at<=new Date())return;
+      list.push({id:3100+i,title:s.lvl==="close"?`💨 Wind closure risk today: gusts ${s.worst.g} km/h`:`💨 Windy today: gusts ${s.worst.g} km/h`,
+        body:`Strongest at ${s.worst.p} around ${romeHM(s.worst.t)}. ${s.lvl==="close"?"Crossing lifts may close: check live status before you go.":"Crossing lifts may slow or close in gusts."}`,schedule:{at}});});
+      if(list.length)try{await LN.schedule({notifications:list});}catch(e){}}
+  }
+  // ----- UI -----
+  const badge=l=>l==="close"?`<span class="wb close">Closure risk</span>`:l==="watch"?`<span class="wb watch">Windy</span>`:`<span class="wb ok">OK</span>`;
+  function render(){
+    const el=$("alertsBox");if(!el)return;const rel=relevant();
+    const where=NATIVE?"iPhone notifications":CAN_FETCH?"a banner while the app is open (full notifications need the native app)":"a banner while this page is open";
+    let h=`<div class="card"><h3>🔔 Lift closing alerts</h3>
+      <label class="switch"><input type="checkbox" id="alLift" ${S.al.lift?"checked":""}> Warn me before lifts close</label>
+      <div class="row" style="margin:4px 0 6px">Notify me <select id="alMins">${[10,15,20,30,45,60,90].map(m=>`<option ${m===S.al.mins?"selected":""}>${m}</option>`).join("")}</select> minutes before closing</div>
+      <label class="switch"><input type="checkbox" id="alRoute" ${S.al.routeOnly?"checked":""}> Only lifts on my planned route</label>
+      <div class="sub">Alerts arrive as ${where}. ${S.al.routeOnly?`Today that's ${rel.length?rel.map(e=>esc(e.label)).join(", "):"none of the listed lifts"}.`:""}</div>
+      <h4 class="sh">Closing times</h4><div class="sub">Winter 2026/27 times from the resorts' timetables. They change through the season, so check them on the day.</div>
+      <ul class="lt">${S.liftTimes.map((e,i)=>`<li class="${rel.includes(e)?"onroute":""}"><input data-i="${i}" data-f="label" value="${esc(e.label)}"><input class="tm" data-i="${i}" data-f="close" value="${esc(e.close)}"><button class="mini" data-del="${i}" aria-label="Remove">✕</button></li>`).join("")}</ul>
+      <div class="row" style="margin-top:6px"><input class="fld" id="alNewLift" list="liftNames" placeholder="Add a lift…" style="flex:1;min-width:0"><input class="fld" id="alNewTime" placeholder="16:00" style="width:74px;text-align:center"><button class="btn" id="alAdd">Add</button></div>
+      <datalist id="liftNames">${[...new Set(D.lifts.map(l=>l.n).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+      <div class="row" style="margin-top:6px"><button class="mini" id="alReset">Restore default times</button></div></div>`;
+    // wind
+    const ws=windSummary();
+    h+=`<div class="card"><h3>💨 Wind alerts</h3>
+      <label class="switch"><input type="checkbox" id="alWind" ${S.al.wind?"checked":""}> Warn me when wind could close lifts</label>
+      <div class="row" style="margin:4px 0">Windy from <input class="fld num" id="alWatch" type="number" min="20" max="120" value="${S.al.watch}"> km/h gusts</div>
+      <div class="row" style="margin:4px 0">Closure risk from <input class="fld num" id="alClose" type="number" min="30" max="150" value="${S.al.close}"> km/h gusts</div>
+      ${NATIVE?`<div class="row" style="margin:4px 0">Morning briefing at <input class="fld num" id="alBrief" value="${esc(S.al.brief)}" style="width:74px"> on windy days</div>`:""}
+      <div class="sub">You'll get ${where} when closure-level gusts are forecast within 3 hours${NATIVE?", plus a morning briefing on windy days":""}. Thresholds are estimates: each lift has its own limit, so always confirm with live status.</div>`;
+    if(!CAN_FETCH)h+=`<div class="sub" style="margin-top:8px">The live wind forecast works in the Ski Planner iPhone apps. Pages inside Claude can't reach the forecast service.</div>`;
+    else if(!S.wind)h+=`<div class="sub" style="margin-top:8px">${S.windErr?"Couldn't load the forecast: "+esc(S.windErr):"Loading forecast…"}</div>`;
+    else{h+=`<h4 class="sh">Lift hours outlook (08–17)</h4><div class="wdays">${ws.map(s=>`<div class="wd ${s.lvl}"><span>${new Date(s.d+"T12:00:00").toLocaleDateString([],{weekday:"short",day:"numeric"})}</span><b>${s.worst.g} km/h</b>${badge(s.lvl)}</div>`).join("")}</div>`;
+      const now=Date.now(),d0=ws[0]&&ws[0].d;
+      h+=`<h4 class="sh">By lift station, today</h4>`+S.wind.pts.map((p,i)=>{const cur=p.h.reduce((b,x)=>Math.abs(x[0]-now)<Math.abs(b[0]-now)?x:b,p.h[0]);const lh=liftHours(p.h,d0);const mx=lh.reduce((b,x)=>x[2]>b[2]?x:b,lh[0]||cur);
+        return `<div class="wrow"><div style="flex:1;min-width:0"><b>${esc(p.n)}</b> <span class="sub">${WIND_POINTS[i].e.toLocaleString()} m</span><div class="sub">Affects ${esc(WIND_POINTS[i].lifts)}</div></div><div class="wnum"><div>now ${cur[1]}/<b>${cur[2]}</b></div><div class="sub">max ${mx[2]} at ${romeHM(mx[0])}</div>${badge(level(mx[2]))}</div></div>`;}).join("");
+      h+=`<div class="sub" style="margin-top:6px">Wind / gusts in km/h, Open-Meteo forecast at station altitude · updated ${new Date(S.wind.at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} <button class="mini" id="alRefresh">Refresh</button></div>`;}
+    h+=`</div>`;
+    el.innerHTML=h; bind();
+  }
+  function changed(){save();render();scheduleLift();evaluateWind();}
+  function bind(){
+    const on=(id,ev,fn)=>{const x=$(id);if(x)x[ev]=fn;};
+    on("alLift","onchange",e=>{S.al.lift=e.target.checked;changed();});
+    on("alMins","onchange",e=>{S.al.mins=+e.target.value;Object.keys(S.sent).forEach(k=>{if(k.includes("|lift:"))delete S.sent[k];});changed();});
+    on("alRoute","onchange",e=>{S.al.routeOnly=e.target.checked;changed();});
+    on("alWind","onchange",e=>{S.al.wind=e.target.checked;changed();});
+    on("alWatch","onchange",e=>{S.al.watch=Math.max(10,+e.target.value||45);changed();});
+    on("alClose","onchange",e=>{S.al.close=Math.max(S.al.watch+5,+e.target.value||65);changed();});
+    on("alBrief","onchange",e=>{if(/^\d{1,2}:\d{2}$/.test(e.target.value))S.al.brief=e.target.value;changed();});
+    on("alRefresh","onclick",()=>fetchWind(true));
+    on("alReset","onclick",()=>{S.liftTimes=JSON.parse(JSON.stringify(DEFAULT_TIMES));changed();});
+    on("alAdd","onclick",()=>{const n=$("alNewLift").value.trim(),t=$("alNewTime").value.trim();if(!n||isNaN(toMin(t))){toast("Pick a lift and a time like 16:00");return;}
+      S.liftTimes.push({label:n,keys:[n],close:t});changed();});
+    const lt=document.querySelector("#alertsBox .lt");
+    if(lt){lt.onchange=ev=>{const i=ev.target.dataset.i,f=ev.target.dataset.f;if(i==null)return;S.liftTimes[+i][f]=ev.target.value.trim();changed();};
+      lt.onclick=ev=>{const d=ev.target.closest("[data-del]");if(!d)return;S.liftTimes.splice(+d.dataset.del,1);changed();};}
+  }
+  function windRisk(){const ws=windSummary();return ws&&ws[0]&&ws[0].lvl!=="ok"?ws[0]:null;}
+  setInterval(()=>{checkLifts();evaluateWind();},30000);
+  setInterval(()=>{fetchWind(false);scheduleLift();},10*60000);
+  setTimeout(()=>{fetchWind(false);scheduleLift();checkLifts();evaluateWind();},2500);
+  return {render,windRisk,relevant,fetchWind,_check:checkLifts};
+})();
+window.__alerts=Alerts;
 
 window.__integrations=Integrations;window.__home=Home;Stats.render();Home.render();
 // ---------- iPhone web app: live GPS ----------
