@@ -1,0 +1,43 @@
+name: Traffic monitor
+
+# Saves GitHub's 14-day traffic numbers (clones, views, referrers, forks, stars) every day
+# to the `traffic-data` branch, so the history is kept beyond 14 days.
+on:
+  schedule:
+    - cron: "17 6 * * *"   # daily, 06:17 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the traffic-data branch (created on first run)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Switch to traffic-data
+        run: |
+          git fetch origin traffic-data || true
+          if git show-ref --quiet refs/remotes/origin/traffic-data; then
+            git checkout -B traffic-data origin/traffic-data
+          else
+            git checkout --orphan traffic-data
+            git rm -rf --quiet . || true
+            mkdir -p traffic
+          fi
+          git show origin/main:.github/scripts/traffic.py > /tmp/traffic.py
+      - name: Record traffic
+        env:
+          TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: python3 /tmp/traffic.py
+      - name: Commit
+        run: |
+          git config user.name "traffic-bot"
+          git config user.email "traffic-bot@users.noreply.github.com"
+          git add traffic
+          git diff --cached --quiet || git commit -m "Traffic snapshot $(date -u +%F)"
+          git push origin traffic-data
