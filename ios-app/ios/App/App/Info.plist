@@ -78,5 +78,20 @@
 	</array>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Ski Planner reads your heart rate to show it for each run.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Ski Planner saves your snowboarding days as workouts with distance and route.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>io.github.boreder13.skiplanner</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>skiplanner</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

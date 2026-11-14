@@ -2,5 +2,14 @@
   "appId": "io.github.boreder13.skiplanner",
   "appName": "Ski Planner",
   "webDir": "www",
-  "ios": { "contentInset": "never", "backgroundColor": "#0b1220", "scheme": "Ski Planner" }
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0b1220",
+    "scheme": "Ski Planner"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
 }

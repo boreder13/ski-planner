@@ -2760,6 +2760,7 @@ const Stats=(function(){
     let h=`<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">📊 ${view===today()?"Today":esc(view)}</h3>
       ${ds.length>1?`<select id="dayPick">${ds.map(d=>`<option ${d===view?"selected":""}>${d}</option>`).join("")}</select>`:""}</div>`;
     if(!T0||!T0.runs&&!A.lifts.length){
+      if(false){}
       h+=`<div class="sub" style="margin-top:6px">${gpsOK?"Turn on 📡 GPS on the map and ride. Lifts and runs are detected automatically, and stats appear here.":"Run stats need your phone's GPS. They work in the Ski Planner iPhone app, not inside Claude."}</div>${pts.length?`<div class="sub">${pts.length} GPS points recorded so far.</div>`:""}</div>`;}
     else{
       h+=`<div class="statrow">
@@ -2772,12 +2773,13 @@ const Stats=(function(){
         <div class="stat"><span>On lifts</span><b>${hm(T0.lift)}</b><span>${T0.liftN} rides</span></div>
         <div class="stat"><span>Highest point</span><b>${Math.round(T0.hi).toLocaleString()} m</b></div></div>
         <div class="sub">${clock(T0.start)}–${clock(T0.end)}${T0.longest?` · Longest run ${(T0.longest.dist/1000).toFixed(1)} km`:""}</div></div>
-        <div class="card"><h3>Timeline</h3><ol class="gsteps" style="padding-left:0;list-style:none">${A.legs.filter(l=>Math.abs(l.dz)>=40).map((l,i)=>`<li>${l.up?"🚡":"🏂"} <b>${clock(l.t0)}</b> ${esc(l.name)}<br><span class="tm">${l.up?"+"+Math.round(l.dz)+" m · "+hm(l.t1-l.t0):Math.round(-l.dz)+" m ↓ · "+(l.dist/1000).toFixed(1)+" km · top "+kmh(l.top)+" km/h · "+hm(l.t1-l.t0)}</span></li>`).join("")}</ol></div>`;}
+        <div class="card"><h3>Timeline</h3><ol class="gsteps" style="padding-left:0;list-style:none">${A.legs.filter(l=>Math.abs(l.dz)>=40).map((l,i)=>`<li data-t0="${l.t0}" data-t1="${l.t1}">${l.up?"🚡":"🏂"} <b>${clock(l.t0)}</b> ${esc(l.name)}<br><span class="tm">${l.up?"+"+Math.round(l.dz)+" m · "+hm(l.t1-l.t0):Math.round(-l.dz)+" m ↓ · "+(l.dist/1000).toFixed(1)+" km · top "+kmh(l.top)+" km/h · "+hm(l.t1-l.t0)}</span></li>`).join("")}</ol></div>`;}
     h+=`<div class="sub" style="margin:4px 16px 12px">Stats come from your phone's GPS and terrain elevation, so expect small differences from other apps. Data stays on this phone.${view===day&&pts.length?` <button class="mini" id="clearDay">Clear today</button>`:""}</div>`;
     el.innerHTML=h;
     const dp=$("dayPick");if(dp)dp.onchange=()=>{view=dp.value;render();drawTrack();};
     const cd=$("clearDay");if(cd)cd.onclick=()=>{if(cd.dataset.c!=="1"){cd.dataset.c="1";cd.textContent="Tap again to clear";return;}pts=[];cache=null;store();render();drawTrack();};
     summaryLine(); drawTrack();
+    if(window.__integrations)window.__integrations.render(el,view);
   }
   function summaryLine(){const A=get(day);const el=$("statLine");if(!el)return;if(!A.tot||!A.tot.runs){el.textContent="";return;}
     el.textContent=`Today: ${A.tot.runs} runs · ${Math.round(A.tot.vert).toLocaleString()} m ↓ · top ${kmh(A.tot.top)} km/h`;}
@@ -2785,10 +2787,136 @@ const Stats=(function(){
   function drawTrack(){if(trackLayer){map.removeLayer(trackLayer);trackLayer=null;}const P=view===day?pts:load(view);if(P.length<2)return;
     trackLayer=L.polyline(P.map(p=>[p[1],p[2]]),{renderer:ren,color:"#0ea5e9",weight:3,opacity:.85,dashArray:"1 5",lineCap:"round",interactive:false}).addTo(map);}
   window.addEventListener("pagehide",store);document.addEventListener("visibilitychange",()=>{if(document.hidden)store();});
-  return {add,render,get,analyse,line:summaryLine,_pts:()=>pts,_load(arr){pts=arr;cache=null;render();}};
+  return {add,render,get,analyse,line:summaryLine,points:d=>d===day?pts:load(d),_pts:()=>pts,_load(arr){pts=arr;cache=null;render();}};
 })();
 
-Stats.render();
+// ---------- integrations: Apple Health, Strava, Whoop ----------
+const Integrations=(function(){
+  const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+  const WEBAPP=!NATIVE&&location.protocol==="https:"&&/github\.io$/.test(location.hostname);
+  const CB="https://boreder13.github.io/ski-planner/callback.html";
+  const Health=NATIVE?Capacitor.registerPlugin("Health"):null, CapApp=NATIVE?Capacitor.registerPlugin("App"):null;
+  const K="msp-int"; let I={}; try{I=JSON.parse(localStorage.getItem(K)||"{}");}catch(e){}
+  I.strava=I.strava||{}; I.whoop=I.whoop||{}; I.health=I.health||{}; 
+  const saveI=()=>{try{localStorage.setItem(K,JSON.stringify(I));}catch(e){}};
+  const dayRange=d=>{const s=new Date(d+"T00:00:00");return [s,new Date(s.getTime()+864e5)];};
+  const busy={};
+  // ----- OAuth -----
+  const SVC={
+    strava:{auth:p=>`https://www.strava.com/oauth/${NATIVE?"mobile/":""}authorize?client_id=${encodeURIComponent(p.id)}&redirect_uri=${encodeURIComponent(CB)}&response_type=code&approval_prompt=auto&scope=activity:write,activity:read&state=`,
+      token:"https://www.strava.com/oauth/token"},
+    whoop:{auth:p=>`https://api.prod.whoop.com/oauth/oauth2/auth?client_id=${encodeURIComponent(p.id)}&redirect_uri=${encodeURIComponent(CB)}&response_type=code&scope=${encodeURIComponent("read:workout read:cycles offline")}&state=`,
+      token:"https://api.prod.whoop.com/oauth/oauth2/token"}};
+  function connect(svc){const st=(NATIVE?"native-":"web-")+svc+"-"+Math.random().toString(36).slice(2,12);I.pending={svc,state:st};saveI();
+    const url=SVC[svc].auth(I[svc])+st; if(NATIVE)window.open(url,"_blank"); else location.href=url;}
+  async function tokenRequest(svc,params){
+    const body=new URLSearchParams(Object.assign({client_id:I[svc].id,client_secret:I[svc].secret},params));
+    const r=await fetch(SVC[svc].token,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
+    const j=await r.json().catch(()=>({})); if(!r.ok||!j.access_token)throw new Error(j.message||j.error_description||j.error||("HTTP "+r.status));
+    I[svc].tok={access:j.access_token,refresh:j.refresh_token||I[svc].tok&&I[svc].tok.refresh,exp:j.expires_at?j.expires_at*1000:Date.now()+(j.expires_in||3600)*1000};
+    if(j.athlete)I[svc].who=[j.athlete.firstname,j.athlete.lastname].filter(Boolean).join(" ");
+    saveI(); return I[svc].tok;}
+  async function finish(code,state){
+    const svc=(state||"").split("-")[1]||(I.pending&&I.pending.svc); if(!SVC[svc]||!code)return;
+    try{await tokenRequest(svc,{code,grant_type:"authorization_code",redirect_uri:CB});I.pending=null;saveI();toast(`✅ ${svc==="strava"?"Strava":"Whoop"} connected`);}
+    catch(e){toast(`Couldn't connect ${svc}: ${e.message}`);}
+    rerender();}
+  async function accessToken(svc){const t=I[svc].tok;if(!t)throw new Error("Not connected");
+    if(Date.now()>t.exp-60000){if(!t.refresh)throw new Error("Session expired: connect again");await tokenRequest(svc,{grant_type:"refresh_token",refresh_token:t.refresh,scope:"offline"});}
+    return I[svc].tok.access;}
+  async function api(svc,url,opts){opts=opts||{};const tok=await accessToken(svc);opts.headers=Object.assign({},opts.headers,{Authorization:"Bearer "+tok});
+    const r=await fetch(url,opts);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.message||j.error||("HTTP "+r.status));return j;}
+  // return paths: native deep link, web app query string, or pasted code
+  if(NATIVE&&CapApp)CapApp.addListener("appUrlOpen",e=>{try{const u=new URL(e.url);if(u.protocol==="skiplanner:")finish(u.searchParams.get("code"),u.searchParams.get("state"));}catch(err){}});
+  if(WEBAPP){const q=new URLSearchParams(location.search);if(q.get("code")&&q.get("state")){history.replaceState(null,"",location.pathname);setTimeout(()=>{finish(q.get("code"),q.get("state"));showPage("pStats");},400);}}
+  // ----- GPX for Strava -----
+  function gpx(P,name){const iso=t=>new Date(t*1000).toISOString();
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Ski Planner" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>${esc(name)}</name><time>${iso(P[0][0])}</time></metadata><trk><name>${esc(name)}</name><type>snowboarding</type><trkseg>`+
+      P.map(p=>`<trkpt lat="${p[1]}" lon="${p[2]}">${p[3]!=null?`<ele>${p[3]}</ele>`:""}<time>${iso(p[0])}</time></trkpt>`).join("")+`</trkseg></trk></gpx>`;}
+  async function stravaUpload(day){
+    const P=Stats.points(day),A=Stats.get(day).tot; if(P.length<10||!A)throw new Error("Not enough GPS data for this day");
+    const name=`Snowboarding · ${A.runs} runs · ${Math.round(A.vert).toLocaleString()} m`;
+    const desc=`${A.runs} runs, ${Math.round(A.vert)} m vertical, ${(A.dist/1000).toFixed(1)} km ridden, top ${Math.round(A.top*3.6)} km/h. Recorded with Ski Planner.`;
+    const fd=new FormData();fd.append("file",new Blob([gpx(P,name)],{type:"application/gpx+xml"}),`ski-${day}.gpx`);
+    fd.append("data_type","gpx");fd.append("sport_type","Snowboard");fd.append("activity_type","snowboard");fd.append("name",name);fd.append("description",desc);fd.append("external_id",`skiplanner-${day}-${P[P.length-1][0]}`);
+    let up=await api("strava","https://www.strava.com/api/v3/uploads",{method:"POST",body:fd});
+    for(let i=0;i<15&&!up.activity_id&&!up.error;i++){await new Promise(r=>setTimeout(r,2000));up=await api("strava",`https://www.strava.com/api/v3/uploads/${up.id}`);}
+    if(up.error)throw new Error(up.error); if(!up.activity_id)throw new Error("Strava is still processing it: check the Strava app in a minute");
+    I.strava.done=I.strava.done||{};I.strava.done[day]=up.activity_id;saveI();return up.activity_id;}
+  // ----- Apple Health -----
+  async function healthAuth(){const r=await Health.requestAuthorization();I.health.ok=true;saveI();return r;}
+  async function healthSave(day){const P=Stats.points(day),A=Stats.get(day).tot;if(P.length<10||!A)throw new Error("Not enough GPS data for this day");
+    await healthAuth();await Health.saveWorkout({points:P,distance:Math.round(A.dist),title:"Ski Planner"});I.health.saved=I.health.saved||{};I.health.saved[day]=true;saveI();}
+  const hrCache={};
+  async function heartFor(day){if(!NATIVE||!I.health.ok)return null;const c=hrCache[day];if(c&&Date.now()-c.at<120000)return c.s;
+    const [s,e]=dayRange(day);try{const r=await Health.heartRate({start:s.getTime()/1000,end:e.getTime()/1000});hrCache[day]={at:Date.now(),s:r.samples||[]};return hrCache[day].s;}catch(err){return null;}}
+  // ----- Whoop: strain + heart rate only -----
+  const whoopCache={};
+  async function whoopDay(day){if(!I.whoop.tok)return null;const c=whoopCache[day];if(c&&Date.now()-c.at<300000)return c.d;
+    const [s,e]=dayRange(day),q=`start=${encodeURIComponent(s.toISOString())}&end=${encodeURIComponent(e.toISOString())}`;
+    const [cyc,wo]=await Promise.all([api("whoop",`https://api.prod.whoop.com/developer/v2/cycle?${q}&limit=5`),api("whoop",`https://api.prod.whoop.com/developer/v2/activity/workout?${q}&limit=25`)]);
+    const d={cycle:(cyc.records||[])[0]||null,workouts:wo.records||[]};whoopCache[day]={at:Date.now(),d};return d;}
+  // ----- UI -----
+  let lastEl=null,lastDay=null;
+  function rerender(){if(lastEl)render(lastEl,lastDay);}
+  const setupFields=(svc)=>`<div class="row" style="margin-top:6px"><input class="fld" id="${svc}Id" placeholder="Client ID" value="${esc(I[svc].id||"")}" style="flex:1;min-width:0"><input class="fld" id="${svc}Sec" placeholder="Client Secret" type="password" value="${esc(I[svc].secret||"")}" style="flex:1;min-width:0"><button class="btn" data-x="save-${svc}">Save</button></div>`;
+  function render(el,day){
+    lastEl=el;lastDay=day; const old=document.getElementById("intCard");if(old)old.remove();
+    const has=Stats.points(day).length>=10, card=document.createElement("div");card.className="card";card.id="intCard";
+    if(!NATIVE&&!WEBAPP){card.innerHTML=`<h3>Connections</h3><div class="sub">Apple Health, Strava and Whoop work in the Ski Planner iPhone app.</div>`;el.appendChild(card);return;}
+    let h=`<h3>Connections</h3>`;
+    // Apple Health
+    h+=`<div class="leg"><h4>❤️ Apple Health</h4>`;
+    if(!NATIVE)h+=`<div class="sub">Needs the native iPhone app (installed from Xcode).</div>`;
+    else h+=`<div class="sub">${I.health.ok?"Connected. Heart rate shows per run in the timeline above.":"Saves days as Snowboarding workouts and reads heart rate for each run."}</div>
+      <div class="row" style="margin-top:6px">${I.health.ok?"":`<button class="btn" data-x="health-auth">Connect</button>`}
+      <button class="btn ${has?"pri":""}" data-x="health-save" ${has?"":"disabled"}>${I.health.saved&&I.health.saved[day]?"✓ Saved to Health (save again)":"Save this day to Health"}</button></div>`;
+    h+=`</div>`;
+    // Strava
+    h+=`<div class="leg"><h4>🟧 Strava</h4>`;
+    if(!I.strava.id||!I.strava.secret)h+=`<div class="sub">One-time setup: create an app at <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a> (any name, website <b>boreder13.github.io</b>, Authorization Callback Domain <b>boreder13.github.io</b>), then paste its Client ID and Client Secret:</div>${setupFields("strava")}`;
+    else if(!I.strava.tok)h+=`<div class="row" style="margin-top:4px"><button class="btn pri" data-x="connect-strava">Connect Strava</button><button class="mini" data-x="reset-strava">Change app keys</button></div>${pasteRow("strava")}`;
+    else{const done=I.strava.done&&I.strava.done[day];
+      h+=`<div class="sub">Connected${I.strava.who?" as "+esc(I.strava.who):""}.</div><div class="row" style="margin-top:6px"><button class="btn ${has?"pri":""}" data-x="strava-up" ${has?"":"disabled"}>${done?"Upload again":"⬆️ Upload this day"}</button>${done?`<a class="btn" href="https://www.strava.com/activities/${done}" target="_blank" rel="noopener">View on Strava</a>`:""}<button class="mini" data-x="disc-strava">Disconnect</button></div>`;}
+    h+=`</div>`;
+    // Whoop
+    h+=`<div class="leg"><h4>⚫ Whoop</h4>`;
+    if(!NATIVE)h+=`<div class="sub">Needs the native iPhone app (Whoop doesn't allow web pages to connect).</div>`;
+    else if(!I.whoop.id||!I.whoop.secret)h+=`<div class="sub">One-time setup: create an app at <a href="https://developer-dashboard.whoop.com/apps/create" target="_blank" rel="noopener">developer-dashboard.whoop.com</a> with redirect URL <b>${CB}</b> and scopes <b>read:workout</b>, <b>read:cycles</b> and <b>offline</b>, then paste:</div>${setupFields("whoop")}`;
+    else if(!I.whoop.tok)h+=`<div class="row" style="margin-top:4px"><button class="btn pri" data-x="connect-whoop">Connect Whoop</button><button class="mini" data-x="reset-whoop">Change app keys</button></div>${pasteRow("whoop")}`;
+    else h+=`<div id="whoopData" class="sub">Loading strain and heart rate…</div><div class="row" style="margin-top:6px"><button class="mini" data-x="disc-whoop">Disconnect</button></div>`;
+    h+=`</div>`;
+    card.innerHTML=h; el.appendChild(card);
+    card.onclick=onClick;
+    // async extras
+    if(NATIVE&&I.health.ok)heartFor(day).then(s=>annotateHR(el,s));
+    if(NATIVE&&I.whoop.tok)whoopDay(day).then(d=>showWhoop(d)).catch(e=>{const w=$("whoopData");if(w)w.textContent="Whoop: "+e.message;});
+  }
+  const pasteRow=svc=>`<div class="sub" style="margin-top:6px">Not sent back to the app after approving? Paste the code shown on the page:</div><div class="row"><input class="fld" id="${svc}Code" placeholder="Code" style="flex:1;min-width:0"><button class="btn" data-x="code-${svc}">OK</button></div>`;
+  function annotateHR(el,s){if(!s||!s.length)return;el.querySelectorAll("li[data-t0]").forEach(li=>{const a=+li.dataset.t0,b=+li.dataset.t1;const v=s.filter(x=>x.t>=a&&x.t<=b).map(x=>x.bpm);
+      if(!v.length||li.querySelector(".hr"))return;const avg=Math.round(v.reduce((p,c)=>p+c,0)/v.length),mx=Math.round(Math.max(...v));
+      li.insertAdjacentHTML("beforeend",`<br><span class="tm hr">♥ ${avg} avg · ${mx} max bpm</span>`);});}
+  function showWhoop(d){const w=$("whoopData");if(!w||!d)return;const c=d.cycle&&d.cycle.score;
+    const fmt=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    let h=c?`<div class="statrow"><div class="stat"><span>Day strain</span><b>${(+c.strain).toFixed(1)}</b></div><div class="stat"><span>Avg heart rate</span><b>${c.average_heart_rate} bpm</b></div><div class="stat"><span>Max heart rate</span><b>${c.max_heart_rate} bpm</b></div></div>`:"No Whoop day data yet.";
+    if(d.workouts.length)h+=d.workouts.map(x=>{const s=x.score||{};return `<div>🏂 ${esc(x.sport_name||"Workout")} ${fmt(x.start)}–${fmt(x.end)} · strain <b>${s.strain!=null?(+s.strain).toFixed(1):"–"}</b> · ♥ ${s.average_heart_rate||"–"} avg / ${s.max_heart_rate||"–"} max</div>`;}).join("");
+    w.innerHTML=h;}
+  async function onClick(ev){const b=ev.target.closest("[data-x]");if(!b||busy[b.dataset.x])return;const x=b.dataset.x,day=lastDay;busy[x]=1;const label=b.textContent;
+    try{
+      if(x.startsWith("save-")){const s=x.slice(5);I[s].id=$(s+"Id").value.trim();I[s].secret=$(s+"Sec").value.trim();saveI();}
+      else if(x.startsWith("connect-"))connect(x.slice(8));
+      else if(x.startsWith("reset-")){const s=x.slice(6);I[s]={};saveI();}
+      else if(x.startsWith("disc-")){const s=x.slice(5);delete I[s].tok;saveI();}
+      else if(x.startsWith("code-")){const s=x.slice(5),c=$(s+"Code").value.trim();if(c)await finish(c,`x-${s}`);}
+      else if(x==="health-auth"){await healthAuth();toast("❤️ Apple Health connected");}
+      else if(x==="health-save"){b.textContent="Saving…";await healthSave(day);toast("❤️ Saved to Apple Health");}
+      else if(x==="strava-up"){b.textContent="Uploading…";const id=await stravaUpload(day);toast("🟧 Uploaded to Strava");}
+    }catch(e){toast(e.message||String(e));b.textContent=label;}
+    busy[x]=0;rerender();}
+  return {render,native:NATIVE};
+})();
+
+window.__integrations=Integrations;Stats.render();
 // ---------- iPhone web app: live GPS ----------
 (function(){
   const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
