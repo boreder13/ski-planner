@@ -52,6 +52,15 @@ class SkiBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(HealthPlugin())
     }
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        // match iOS system backgrounds so there is no dark flash in light mode, and no link-preview popups
+        view.backgroundColor = .systemGroupedBackground
+        webView?.isOpaque = false
+        webView?.backgroundColor = .systemGroupedBackground
+        webView?.scrollView.backgroundColor = .systemGroupedBackground
+        webView?.allowsLinkPreview = false
+    }
 }
 
 @objc(HealthPlugin)
@@ -64,7 +73,9 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "saveWorkout", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "heartRate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "shareFile", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "shareText", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "shareText", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setAppearance", returnType: CAPPluginReturnPromise)
     ]
     private let store = HKHealthStore()
     private var distanceType: HKQuantityType { HKQuantityType.quantityType(forIdentifier: .distanceDownhillSnowSports)! }
@@ -177,6 +188,34 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
                 if let error = error { call.reject(error.localizedDescription) } else { call.resolve(["completed": completed]) }
             }
             vc.present(sheet, animated: true)
+        }
+    }
+
+    // Taptic feedback: light | medium | heavy | selection | success | warning | error
+    @objc func haptic(_ call: CAPPluginCall) {
+        let style = call.getString("style") ?? "light"
+        DispatchQueue.main.async {
+            switch style {
+            case "selection": UISelectionFeedbackGenerator().selectionChanged()
+            case "success": UINotificationFeedbackGenerator().notificationOccurred(.success)
+            case "warning": UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            case "error": UINotificationFeedbackGenerator().notificationOccurred(.error)
+            case "medium": UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            case "heavy": UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            default: UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+            call.resolve()
+        }
+    }
+
+    // Light / dark override for native parts (status bar, share sheets, alerts): auto | light | dark
+    @objc func setAppearance(_ call: CAPPluginCall) {
+        let style = call.getString("style") ?? "auto"
+        DispatchQueue.main.async {
+            let s: UIUserInterfaceStyle = style == "light" ? .light : style == "dark" ? .dark : .unspecified
+            self.bridge?.viewController?.view.window?.overrideUserInterfaceStyle = s
+            self.bridge?.viewController?.setNeedsStatusBarAppearanceUpdate()
+            call.resolve()
         }
     }
 }

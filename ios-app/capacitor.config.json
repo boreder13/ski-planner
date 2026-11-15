@@ -4,7 +4,8 @@
   "webDir": "www",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#0b1220",
+    "backgroundColor": "#00000000",
+    "allowsLinkPreview": false,
     "scheme": "Ski Planner"
   },
   "plugins": {

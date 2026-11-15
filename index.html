@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ski Planner">
-<meta name="theme-color" content="#0b1220">
+<meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>html.standalone header{padding-top:calc(6px + env(safe-area-inset-top))}</style>
 <style>/* required styles */
@@ -894,11 +894,173 @@ a{color:#93c5fd}
 .switch{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:14px}
 footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
 .statusitem{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+/* ================= iOS look & feel (overrides) ================= */
+:root{color-scheme:dark;
+  --bg:#000;--panel:#1c1c1e;--panel2:#2c2c2e;--panel3:#3a3a3c;--ink:#fff;--mute:#8e8e93;--line:rgba(84,84,88,.6);
+  --tint:#0a84ff;--tintbg:rgba(10,132,255,.18);--ok:#30d158;--warn:#ff9f0a;--bad:#ff453a;--fill:rgba(118,118,128,.24);
+  --glass:rgba(30,30,32,.72);--glassline:rgba(255,255,255,.12);--sheetbg:rgba(28,28,30,.94);--shadow:0 10px 30px rgba(0,0,0,.45);
+  --banner-ink:#fff}
+html.light{color-scheme:light;
+  --bg:#f2f2f7;--panel:#fff;--panel2:#f2f2f7;--panel3:#e5e5ea;--ink:#000;--mute:#6c6c70;--line:rgba(60,60,67,.18);
+  --tint:#007aff;--tintbg:rgba(0,122,255,.12);--ok:#34c759;--warn:#ff9500;--bad:#ff3b30;--fill:rgba(118,118,128,.12);
+  --glass:rgba(255,255,255,.74);--glassline:rgba(255,255,255,.7);--sheetbg:rgba(255,255,255,.96);--shadow:0 10px 30px rgba(0,0,0,.14)}
+html,body{font:16px/1.38 -apple-system,"SF Pro Text",system-ui,sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;overscroll-behavior-y:none;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text}
+a{color:var(--tint);text-decoration:none}
+button,.btn,a.btn{transition:opacity .15s,transform .15s,background-color .2s}
+button:active,.btn:active,.chip:active,.dayrow:active,.tripcard:active{opacity:.55}
+.sub{color:var(--mute);font-size:14px}
+h1,h2,h3,h4{letter-spacing:-.02em}
+
+/* ---------- navigation bar with large title ---------- */
+header{display:block;padding:env(safe-area-inset-top) 0 0;background:transparent;border-bottom:.5px solid transparent;transition:background-color .2s,border-color .2s}
+header.scrolled,header.sub{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom-color:var(--line)}
+header .navrow{display:flex;align-items:center;height:44px;padding:0 8px}
+header h1{flex:1;text-align:center;font-size:17px;font-weight:600;margin:0;opacity:1;transition:opacity .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.large:not(.scrolled) h1{opacity:0}
+header .back,header .navsp{flex:0 0 96px;min-width:96px}
+header .back{display:flex;align-items:center;gap:1px;background:none;border:0;color:var(--tint);font-size:17px;padding:0;text-align:left;white-space:nowrap;overflow:hidden}
+header .back svg{flex:0 0 auto;margin-left:-2px}
+header .back[hidden]{display:flex!important;visibility:hidden}
+header .back[hidden]+h1{margin-left:0}
+header h1{margin:0!important}
+#largeTitle{font-size:34px;font-weight:700;letter-spacing:.01em;line-height:41px;padding:0 16px 6px;transition:opacity .15s}
+header:not(.large) #largeTitle{display:none}
+header.large.scrolled #largeTitle{opacity:0}
+
+/* ---------- floating glass tab bar ---------- */
+.appnav{left:12px;right:12px;bottom:calc(6px + env(safe-area-inset-bottom));padding:5px;border-radius:32px;border:.5px solid var(--glassline);
+  background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:var(--shadow);max-width:520px;margin:0 auto}
+.appnav button{border-radius:26px;padding:5px 0 4px;font-size:10.5px;font-weight:600;color:var(--ink);gap:2px;letter-spacing:0}
+.appnav button svg{width:26px;height:26px;display:block}
+.appnav button span{display:none}
+.appnav button.on{color:var(--tint);background:var(--fill)}
+.appnav button .ico-on{display:none}.appnav button.on .ico-on{display:block}.appnav button.on .ico-off{display:none}
+#recDot{top:3px;right:calc(50% - 20px);box-shadow:0 0 0 2px var(--panel);background:var(--bad)}
+
+/* ---------- page transitions ---------- */
+@keyframes pushIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes popIn{from{transform:translateX(-30%);opacity:.6}to{transform:none;opacity:1}}
+@keyframes fadeIn{from{opacity:.4}to{opacity:1}}
+.pg-push{animation:pushIn .38s cubic-bezier(.2,.9,.25,1) both;box-shadow:-8px 0 24px rgba(0,0,0,.18)}
+.pg-pop{animation:popIn .34s cubic-bezier(.2,.9,.25,1) both}
+.pg-fade{animation:fadeIn .18s ease-out both}
+.pg-drag{transition:none!important;box-shadow:-8px 0 24px rgba(0,0,0,.25)}
+
+/* ---------- grouped sections (cards) ---------- */
+.card{background:var(--panel);border:0;border-radius:18px;padding:14px 16px;margin:12px 16px}
+.card h3{font-size:19px;font-weight:700;margin:0 0 8px}
+.leg,.legrow,.dayrow,.tripcard,.statusitem,.stoplist li,.planstops li,.lt li,.wrow{border-color:var(--line)!important}
+.dayrow .chev,.chev{color:var(--panel3);font-size:22px}
+html.light .dayrow .chev{color:#c4c4c7}
+.stat,.chip,.wd{background:var(--panel2);border-radius:12px}
+html.light .stat,html.light .chip,html.light .wd{background:#f2f2f7}
+.stat span,.chip span,.wd span{font-size:12px}
+.stat b,.chip b{font-weight:700;letter-spacing:-.02em}
+.sh{font-size:13px;font-weight:400;text-transform:uppercase;color:var(--mute);margin:16px 4px 6px}
+.tag{background:var(--fill);color:var(--mute)}
+
+/* ---------- buttons ---------- */
+.btn,a.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;background:var(--tintbg);color:var(--tint);border-radius:99px;padding:9px 16px;font-size:15px;font-weight:600;line-height:1.2;text-decoration:none}
+.btn.pri,a.btn.pri{background:var(--tint);color:#fff}
+.btn:disabled{opacity:.35}
+.mini{border:0;background:var(--fill);color:var(--tint);border-radius:99px;padding:5px 11px;font-size:13px;font-weight:600}
+.obgo{padding:15px;font-size:17px;border-radius:16px}
+
+/* ---------- text fields & menus (16px stops iOS zoom) ---------- */
+select,.fld,.fstools input{background:var(--fill);color:var(--ink);border:0;border-radius:11px;padding:9px 12px;font-size:16px;outline:none}
+.fld.title{font-size:22px;font-weight:700;background:transparent;padding:4px 0}
+select{-webkit-appearance:none;appearance:none;padding-right:30px;color:var(--tint);font-weight:500;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='14' viewBox='0 0 12 14'%3E%3Cpath d='M2 5l4-3.5L10 5M2 9l4 3.5L10 9' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+.planstops input,.stoplist input,.lt input{border-bottom:0;border-radius:8px;background:var(--fill);padding:5px 8px;font-size:16px}
+input::placeholder{color:var(--mute)}
+
+/* ---------- switches ---------- */
+input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:0 0 51px;width:51px;height:31px;border-radius:16px;background:var(--fill);position:relative;margin:0;cursor:pointer;transition:background-color .25s;vertical-align:middle}
+html:not(.light) input[type=checkbox]{background:rgba(120,120,128,.32)}
+input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);transition:transform .25s cubic-bezier(.3,.7,.4,1.2)}
+input[type=checkbox]:checked{background:var(--ok)!important}
+input[type=checkbox]:checked::after{transform:translateX(20px)}
+label.switch{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;font-size:16px;border-bottom:.5px solid var(--line)}
+label.switch:last-child{border-bottom:0}
+
+/* ---------- segmented controls ---------- */
+.ptabs,.tabs,.seg{display:flex;gap:0;background:var(--fill);border-radius:10px;padding:2px;margin:10px 16px;overflow:visible}
+.ptabs button,.tabs button,.seg button{flex:1;border:0;background:transparent;color:var(--ink);border-radius:8px;padding:6px 4px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs button.on,.tabs button.on,.seg button.on{background:var(--panel);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+html:not(.light) .ptabs button.on,html:not(.light) .tabs button.on,html:not(.light) .seg button.on{background:#636366}
+.tabs{overflow-x:auto}.tabs button{flex:1 0 auto;padding:6px 10px}
+
+/* ---------- sheets ---------- */
+#runSheet{background:rgba(0,0,0,.35);animation:fadeIn .2s}
+.rs{background:var(--panel);border:0;border-radius:22px 22px 0 0;padding-top:22px;position:relative;animation:sheetUp .38s cubic-bezier(.2,.9,.25,1)}
+.rs::before{content:"";position:absolute;top:7px;left:50%;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:var(--panel3)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+.rshead button,.sheetx{width:30px;height:30px;border-radius:50%;background:var(--fill)!important;color:var(--mute)!important;font-size:14px!important;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0!important}
+
+/* ---------- notification banners ---------- */
+#alertBar{left:8px;right:8px}
+.ab{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glassline);border-radius:22px;color:var(--ink);box-shadow:var(--shadow);padding:12px 14px;animation:dropIn .45s cubic-bezier(.2,.9,.25,1.1)}
+.ab.warn,.ab.bad{background:var(--glass);border-color:var(--glassline)}
+.ab.warn b,.ab.warn strong{color:var(--warn)}.ab.bad b,.ab.bad strong{color:var(--bad)}
+.ab button{color:var(--mute)}
+@keyframes dropIn{from{transform:translateY(-120%)}to{transform:none}}
+.latebox{background:rgba(255,159,10,.14);border:0;color:var(--ink);border-radius:12px}
+html.light .latebox{color:#7a4300}
+.banner{border:0!important;border-radius:18px;color:#fff}
+.banner .sub,.banner .then{color:rgba(255,255,255,.85)}
+.banner.easy,.banner{background:linear-gradient(135deg,#0a6cff,#0050c8)}
+.banner.intermediate{background:linear-gradient(135deg,#ff453a,#c91f16)}
+.banner.advanced{background:linear-gradient(135deg,#2c2c2e,#000)}
+.banner.warn{background:linear-gradient(135deg,#ff9f0a,#d17a00)}
+.banner.done{background:linear-gradient(135deg,#30d158,#1f9e3e)}
+.wb.ok{background:rgba(48,209,88,.18);color:var(--ok)}.wb.watch{background:rgba(255,159,10,.18);color:var(--warn)}.wb.close{background:rgba(255,69,58,.18);color:var(--bad)}
+.tag.closed{background:rgba(255,69,58,.16);color:var(--bad)}.tag.last{background:rgba(255,159,10,.16);color:var(--warn)}
+html.light .chart .ct{fill:#6c6c70}
+
+/* ---------- onboarding ---------- */
+#onboard{background:var(--bg)}
+.ob h2{font-size:30px;font-weight:700}.ob p{color:var(--mute);font-size:17px}
+.ob .dots i{background:var(--panel3)}.ob .dots i.on{background:var(--ink)}
+.obskip{color:var(--tint)}
+
+/* ---------- map: edge to edge under the floating bars ---------- */
+#mapShell.fs{bottom:0!important}
+#mapShell.fs .leaflet-bottom{bottom:calc(76px + env(safe-area-inset-bottom))}
+#mapShell.fs #sheet{bottom:calc(84px + env(safe-area-inset-bottom))}
+#mapShell.fs #doneStops{bottom:calc(92px + env(safe-area-inset-bottom))}
+#mapShell.fs #tripSum{bottom:calc(88px + env(safe-area-inset-bottom))}
+#mapShell.fs #awayPill{bottom:calc(132px + env(safe-area-inset-bottom))}
+#globeCap{bottom:calc(96px + env(safe-area-inset-bottom))}#globeSkip{bottom:calc(92px + env(safe-area-inset-bottom))}
+.fsbar{gap:6px;left:10px;right:10px}
+.fsbar button{height:42px;border-radius:14px;border:.5px solid var(--glassline);background:var(--glass);color:var(--ink);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 2px 10px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
+.fsbar button svg{width:21px;height:21px}
+.fsbar .mode.on,.fsbar .tool.on,#legendBtn.on{background:var(--tint)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 2px 10px rgba(0,0,0,.18)!important}
+.fstools{top:calc(56px + env(safe-area-inset-top));left:10px;right:10px}
+.fstools input{background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:.5px solid var(--glassline);border-radius:14px}
+#results{background:var(--sheetbg);border:0;border-radius:14px;box-shadow:var(--shadow);top:calc(104px + env(safe-area-inset-top));left:10px;right:10px}
+#results div{border-color:var(--line)}
+#sheet{background:var(--sheetbg);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:0;border-radius:20px;box-shadow:var(--shadow);padding:12px 14px;left:10px}
+#toast{background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:.5px solid var(--glassline);color:var(--ink);top:calc(60px + env(safe-area-inset-top));padding:8px 16px;font-size:14px;font-weight:500;box-shadow:var(--shadow)}
+#tripSum,#awayPill{border:0;border-radius:12px;background:var(--glass);color:var(--ink);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 2px 10px rgba(0,0,0,.15)}
+#awayPill{background:var(--tint);color:#fff}
+#legendPanel{background:var(--sheetbg);color:var(--ink);border:0;border-radius:18px;box-shadow:var(--shadow);top:calc(58px + env(safe-area-inset-top));right:10px}
+#legendPanel h5,#legendPanel .note{color:var(--mute)}
+#legendPanel .ttl button{color:var(--mute)}
+.leaflet-control-zoom{border:0!important;border-radius:14px!important;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.15)!important}
+.leaflet-bar a,.leaflet-control-zoom a{background:var(--glass)!important;color:var(--ink)!important;border-color:var(--line)!important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);width:40px!important;height:40px!important;line-height:40px!important;font-size:20px!important}
+.leaflet-bar{border:0!important;border-radius:14px!important;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.15)!important}
+.leaflet-control-attribution{background:rgba(255,255,255,.6)!important;color:#6c6c70!important;border-radius:6px 0 0 0}
+.leaflet-control-attribution a{color:#007aff!important}
+#v3d button,#globeX{background:var(--glass);border:.5px solid var(--glassline);color:var(--ink);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+@media (prefers-reduced-motion:reduce){.pg-push,.pg-pop,.pg-fade,.rs,.ab{animation:none}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><button id="backBtn" class="back" hidden>‹ Back</button><h1 id="pageTitle">Ski Planner</h1></header>
+<header class="large"><div class="navrow"><button id="backBtn" class="back" hidden>‹ Back</button><h1 id="pageTitle">Ski Planner</h1><span class="navsp"></span></div><div id="largeTitle">Ski Planner</div></header>
 <nav class="appnav" id="ptabs">
   <button data-p="pHome" class="on"><span>🏠</span>Home</button>
   <button data-p="pMap"><span>🗺️</span>Map</button>
@@ -971,6 +1133,11 @@ footer{color:var(--mute);font-size:11.5px;padding:6px 16px 30px}
   <div id="statusList"></div>
 </div>
 
+<div class="card">
+  <h3>Appearance</h3>
+  <div class="seg" id="appearSeg" style="margin:4px 0 0"><button data-a="auto">Automatic</button><button data-a="light">Light</button><button data-a="dark">Dark</button></div>
+  <div class="sub" style="margin-top:6px">Automatic follows your iPhone's light or dark mode. Light is easiest to read in bright snow.</div>
+</div>
 <div class="card">
   <h3>Routing preferences</h3>
   <label class="switch"><input type="checkbox" id="pAvoidDrag"> Avoid drag lifts (T-bars, platters) when possible</label>
@@ -2518,7 +2685,7 @@ function fitRoute(){if(!curRoute)return;const h=Math.min(innerHeight*0.30,250);m
 // ---------- page tabs ----------
 const PAGES={pHome:["Ski Planner",null,"pHome"],pMap:["Map",null,"pMap"],pRide:["Ride",null,"pRide"],pStats:["Stats",null,"pStats"],pMore:["More",null,"pMore"],pPlan:["Plan route","pHome","pHome"],pGuide:["Steps","back","pHome"]};
 let curPage="pHome",prevPage="pHome";
-function showPage(id){if(!PAGES[id])id="pHome";if(id!==curPage){prevPage=curPage;curPage=id;}
+function showPage(id){if(!PAGES[id])id="pHome";const fromPg=curPage;if(id!==curPage){prevPage=curPage;curPage=id;}
   const P=PAGES[id];document.querySelectorAll("#ptabs button").forEach(b=>b.classList.toggle("on",b.dataset.p===P[2]));
   Object.keys(PAGES).forEach(p=>$(p).hidden=p!==id);
   $("pageTitle").textContent=P[0];$("backBtn").hidden=!P[1];
@@ -2527,7 +2694,7 @@ function showPage(id){if(!PAGES[id])id="pHome";if(id!==curPage){prevPage=curPage
   else{$("results").style.display="none";}
   if(id==="pGuide")renderGuide();else if(id==="pStats"){if(window.Stats)Stats.render();}else if(id==="pHome"&&window.__home)__home.render();
   else if(id==="pRide"&&window.__ride)__ride.render();else if(id==="pMore"&&window.__alerts)__alerts.render();else if(id==="pPlan"&&window.__plan)__plan.render();
-  window.scrollTo(0,0);}
+  window.scrollTo(0,0);if(window.__ios)__ios.after(id,fromPg);}
 $("backBtn").onclick=()=>{const P=PAGES[curPage];showPage(P[1]==="back"?(prevPage===curPage?"pHome":prevPage):P[1]);};
 $("ptabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)showPage(b.dataset.p);});
 // ---------- legend ----------
@@ -3317,7 +3484,7 @@ const Alerts=(function(){
   const atToday=hm=>{const m=toMin(hm);if(isNaN(m))return null;const d=new Date();d.setHours(0,0,0,0);d.setMinutes(m);return d;};
   // ----- in-app alert bar -----
   const bar=$("alertBar");
-  function showBar(ic,title,body,kind){const it=document.createElement("div");it.className="ab "+(kind||"");
+  function showBar(ic,title,body,kind){if(window.__ios)__ios.haptic(kind==="bad"?"error":"warning");const it=document.createElement("div");it.className="ab "+(kind||"");
     it.innerHTML=`<span class="abi">${ic}</span><div><b>${esc(title)}</b><div>${esc(body)}</div></div><button aria-label="Dismiss">✕</button>`;
     const kill=()=>{it.remove();if(!bar.children.length)bar.hidden=true;};it.querySelector("button").onclick=kill;setTimeout(kill,45000);
     bar.prepend(it);while(bar.children.length>3)bar.lastChild.remove();bar.hidden=false;}
@@ -3502,6 +3669,82 @@ const Share=(function(){
   return {onPos,render,_state:()=>L};
 })();
 window.__share=Share;
+
+// ---------- iOS look & feel: appearance, large titles, icons, transitions, swipe back, haptics ----------
+const IOS=(function(){
+  const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+  const Native=NATIVE?Capacitor.registerPlugin("Health"):null;
+  const html=document.documentElement, header=document.querySelector("header");
+  // haptics (native only; silently ignored elsewhere)
+  function haptic(style){if(!Native)return;try{Native.haptic({style:style||"light"}).catch(()=>{});}catch(e){}}
+  // appearance: auto | light | dark
+  const mq=window.matchMedia?matchMedia("(prefers-color-scheme: light)"):null;
+  function applyTheme(){const a=S.appearance||"auto",light=a==="light"||(a==="auto"&&mq&&mq.matches);
+    html.classList.toggle("light",light);
+    const mc=document.querySelector('meta[name=theme-color]');if(mc)mc.content=light?"#f2f2f7":"#000000";
+    if(Native)try{Native.setAppearance({style:a}).catch(()=>{});}catch(e){}
+    document.querySelectorAll("#appearSeg button").forEach(b=>b.classList.toggle("on",b.dataset.a===a));}
+  if(mq&&mq.addEventListener)mq.addEventListener("change",applyTheme);
+  applyTheme();
+  document.addEventListener("click",e=>{const b=e.target.closest("#appearSeg button");if(!b)return;S.appearance=b.dataset.a;save();applyTheme();haptic("selection");});
+
+  // icons (SF Symbols style)
+  const svg=(d,extra)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ${extra||""}>${d}</svg>`;
+  const pair=d=>svg(d,'class="ico-off"')+svg(d,'class="ico-on" fill="currentColor" fill-opacity=".22" stroke-width="2.1"');
+  const TAB={pHome:'<path d="M3.5 10.5 12 3.5l8.5 7V19.5a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5a1.5 1.5 0 0 1-1.5-1.5z"/>',
+    pMap:'<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6zM9 4v14M15 6v14"/>',
+    pRide:'<path d="M12 3.2 19 20l-7-3.8L5 20z"/>',
+    pStats:'<rect x="3.5" y="12" width="3.6" height="8.5" rx="1"/><rect x="10.2" y="5" width="3.6" height="15.5" rx="1"/><rect x="16.9" y="9" width="3.6" height="11.5" rx="1"/>',
+    pMore:'<circle cx="12" cy="12" r="9"/><circle cx="7.8" cy="12" r=".9" fill="currentColor"/><circle cx="12" cy="12" r=".9" fill="currentColor"/><circle cx="16.2" cy="12" r=".9" fill="currentColor"/>'};
+  document.querySelectorAll("#ptabs button").forEach(b=>{const d=TAB[b.dataset.p];if(!d)return;const sp=b.querySelector("span");if(sp)sp.insertAdjacentHTML("beforebegin",pair(d));});
+  const TOOL={info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/>',
+    here:'<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+    goto:'<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+    mark:'<path d="m14.5 5 4.5 4.5L9 19.5H4.5V15z"/><path d="M12.5 7l4.5 4.5"/>',
+    stop:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    gpsBtn:'<path d="M20.5 3.5 3.5 10.6l7.2 2.7 2.7 7.2z"/>',
+    searchBtn:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>',
+    legendBtn:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/>',
+    homeBtn:'<path d="M3.5 10.5 12 3.5l8.5 7V19.5a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5a1.5 1.5 0 0 1-1.5-1.5z"/>'};
+  document.querySelectorAll(".fsbar button").forEach(b=>{const d=TOOL[b.dataset.m]||TOOL[b.id];if(d){b.innerHTML=svg(d);b.setAttribute("aria-label",b.title||"");}});
+  const chev='<svg width="13" height="21" viewBox="0 0 13 21" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2 2.5 10.5l8 8.5"/></svg>';
+
+  // large titles + back label + transitions
+  const ROOT=["pHome","pMap","pRide","pStats","pMore"];
+  let goingBack=false;
+  function after(id,from){const P=PAGES[id];const isRoot=!P[1];
+    header.classList.toggle("large",isRoot);header.classList.toggle("sub",!isRoot);
+    $("largeTitle").textContent=P[0];
+    if(!isRoot){const parent=P[1]==="back"?from:P[1];const TABN={pHome:"Home",pMap:"Map",pRide:"Ride",pStats:"Stats",pMore:"More"};let lbl=TABN[parent]||(PAGES[parent]||PAGES.pHome)[0];if(lbl.length>10)lbl="Back";$("backBtn").innerHTML=chev+"<span>"+lbl+"</span>";}
+    onScroll();
+    const el=$(id);el.classList.remove("pg-push","pg-pop","pg-fade");void el.offsetWidth;
+    if(from&&from!==id&&id!=="pMap"){const fromRoot=!PAGES[from][1];
+      if(!isRoot&&!goingBack)el.classList.add("pg-push");else if(goingBack||(!fromRoot&&isRoot))el.classList.add("pg-pop");else el.classList.add("pg-fade");
+      setTimeout(()=>el.classList.remove("pg-push","pg-pop","pg-fade"),420);}
+    goingBack=false;}
+  function onScroll(){const y=window.scrollY||0;header.classList.toggle("scrolled",header.classList.contains("large")?y>34:y>2);}
+  window.addEventListener("scroll",onScroll,{passive:true});
+  $("backBtn").addEventListener("click",()=>{goingBack=true;haptic("light");},true);
+  $("ptabs").addEventListener("click",e=>{if(e.target.closest("button"))haptic("selection");},true);
+
+  // edge swipe to go back on pushed pages
+  let sx=null,sy=0,dx=0,pg=null,drag=false;
+  document.addEventListener("touchstart",e=>{const P=PAGES[curPage];if(!P||!P[1]||curPage==="pMap")return;const t=e.touches[0];if(t.clientX>24)return;sx=t.clientX;sy=t.clientY;dx=0;drag=false;pg=$(curPage);},{passive:true});
+  document.addEventListener("touchmove",e=>{if(sx==null)return;const t=e.touches[0];dx=t.clientX-sx;
+    if(!drag){if(Math.abs(t.clientY-sy)>Math.abs(dx)){sx=null;return;}if(dx>8){drag=true;pg.classList.add("pg-drag");}}
+    if(drag)pg.style.transform=`translateX(${Math.max(0,dx)}px)`;},{passive:true});
+  document.addEventListener("touchend",()=>{if(sx==null)return;sx=null;if(!drag)return;
+    const w=window.innerWidth;pg.classList.remove("pg-drag");pg.style.transition="transform .25s cubic-bezier(.2,.9,.25,1)";
+    if(dx>w*0.3){pg.style.transform=`translateX(${w}px)`;setTimeout(()=>{pg.style.transition="";pg.style.transform="";$("backBtn").click();},230);}
+    else{pg.style.transform="";setTimeout(()=>pg.style.transition="",260);}});
+
+  // light haptics on primary actions and switches
+  document.addEventListener("click",e=>{if(e.target.closest(".btn.pri,.obgo,#doneStops"))haptic("light");else if(e.target.closest(".ptabs button,.tabs button,.seg button"))haptic("selection");},true);
+  document.addEventListener("change",e=>{if(e.target.matches('input[type=checkbox]'))haptic("light");},true);
+  after(curPage,null);
+  return {after,haptic,applyTheme};
+})();
+window.__ios=IOS;
 
 window.__integrations=Integrations;window.__home=Home;window.Stats=Stats;Stats.render();Home.render();
 // ---------- iPhone web app: live GPS ----------

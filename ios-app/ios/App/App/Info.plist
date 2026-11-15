@@ -77,7 +77,7 @@
 		<string>location</string>
 	</array>
 	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleLightContent</string>
+	<string>UIStatusBarStyleDefault</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Ski Planner reads your heart rate to show it for each run.</string>
 	<key>NSHealthUpdateUsageDescription</key>
